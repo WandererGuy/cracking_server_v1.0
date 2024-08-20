@@ -1,4 +1,6 @@
 from utils.common import *
+from fastapi import FastAPI, HTTPException, Form, APIRouter
+
 def gen_hashcat_command(
     hash_type: str ,
     hash_file: str , 
@@ -8,8 +10,13 @@ def gen_hashcat_command(
     ):
 
     # Check if the value exists in the dictionary keys
-    check_value_in_dict(attack_mode, attack_mode_dict)
-    check_value_in_dict(hash_type, hash_type_dict)     
+    detail = check_value_in_dict(attack_mode, attack_mode_dict)
+    if detail is not True:
+        raise HTTPException(status_code=400,detail = detail)
+
+    detail = check_value_in_dict(hash_type, hash_type_dict)     
+    if detail is not True:
+        raise HTTPException(status_code=400,detail = detail) 
 
     hash_type = str(data_type_translate(hash_type))
     hash_file = clean_path(hash_file)

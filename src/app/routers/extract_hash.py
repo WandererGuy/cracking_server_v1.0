@@ -54,7 +54,9 @@ async def extract_hash(
     Expected response :<br>
     url to file txt with hash extracted 
     """
-    check_value_in_list(file_type, support_file_type)
+    detail = check_value_in_list(file_type, support_file_type)
+    if detail is not True:
+        raise HTTPException(status_code=400,detail = detail)
         
     filename = generate_unique_filename(extract_hash_result_folder)
     extract_hash_result_file = extract_hash_result_folder + '/' + filename
@@ -67,10 +69,7 @@ async def extract_hash(
         path = f"http://{host_ip}:{port_num}/static/extract_hash_results/{filename}"
 
         if stdout == None or stdout == "":
-            detail = {                
-            "message": "Cannot extract file. Something is wrong", 
-            "possible error(s)" : "wrong file type\nOR no hash information found in file "
-            }
+            detail = "Cannot extract file.\nPossibilities: wrong file type\nOR no hash information found in file"
             raise HTTPException(status_code=400,detail = detail)
 
         if stderr:

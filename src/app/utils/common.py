@@ -25,20 +25,16 @@ def check_value_in_dict(value_to_check, dict):
         return True
     else:
         available_keys = ', '.join(map(str, dict.keys()))
-        raise HTTPException(
-            status_code=400, 
-            detail=f"'{value_to_check}' does not exist in the dictionary keys. Available keys: {available_keys}"
-        )    
+        detail=f"{value_to_check} does not exist in the dictionary keys. Available keys: {available_keys}"
+        return detail 
 
 def check_value_in_list(value_to_check, ls):
     if value_to_check in ls:
         return True
     else:
         available_keys = ', '.join(map(str, ls))
-        raise HTTPException(
-            status_code=400, 
-            detail=f"'{value_to_check}' does not exist in the dictionary keys. Available keys: {available_keys}"
-        )
+        detail=f"{value_to_check} does not exist in the dictionary keys. Available keys: {available_keys}"
+        return detail 
 
 def list_value_in_dict(support_file_type_list):
         s = ''
