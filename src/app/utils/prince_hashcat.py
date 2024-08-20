@@ -1,4 +1,4 @@
-from utils.server_utils import *
+from utils.common import *
 def gen_hashcat_command(
     hash_type: str ,
     hash_file: str , 

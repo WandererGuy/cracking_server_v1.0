@@ -6,10 +6,10 @@ from pydantic import BaseModel
 import configparser
 import subprocess
 from pydantic import BaseModel, validator, ValidationError
-from utils.server_utils import *
+from utils.common import *
 from fastapi.staticfiles import StaticFiles
-from routers.HashCrack import router as HashCrack_router
-from routers.ExtractHash import router as ExtractHash_router 
+from routers.hash_crack import router as hash_crack_router
+from routers.extract_hash import router as extract_hash_router 
 from routers.prince import router as prince_router 
 
 from starlette.responses import RedirectResponse
@@ -30,8 +30,8 @@ host_ip = config['DEFAULT']['host']
 port_num = config['DEFAULT']['port'] 
 
 app = FastAPI()
-app.include_router(HashCrack_router)
-app.include_router(ExtractHash_router)
+app.include_router(hash_crack_router)
+app.include_router(extract_hash_router)
 app.include_router(prince_router)
 
 

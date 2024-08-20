@@ -1,7 +1,7 @@
 import uuid
 import os
 
-support_file_type = ['MD5', 'BitLocker', '7-Zip', 'WinZip', 'RAR']
+support_file_type = ['BitLocker', '7-Zip', 'WinZip', 'RAR5']
 
 hash_type_dict = {
     'MD5': 0,
@@ -25,16 +25,20 @@ def check_value_in_dict(value_to_check, dict):
         return True
     else:
         available_keys = ', '.join(map(str, dict.keys()))
-        raise KeyError(f"{value_to_check} does not exist in the dictionary keys. \
-Available keys: {available_keys}")
-    
+        raise HTTPException(
+            status_code=400, 
+            detail=f"'{value_to_check}' does not exist in the dictionary keys. Available keys: {available_keys}"
+        )    
+
 def check_value_in_list(value_to_check, ls):
     if value_to_check in ls:
         return True
     else:
         available_keys = ', '.join(map(str, ls))
-        raise KeyError(f"{value_to_check} does not exist in the dictionary keys. \
-Available keys: {available_keys}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"'{value_to_check}' does not exist in the dictionary keys. Available keys: {available_keys}"
+        )
 
 def list_value_in_dict(support_file_type_list):
         s = ''

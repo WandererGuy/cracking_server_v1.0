@@ -6,7 +6,7 @@ from pydantic import BaseModel
 import configparser
 import subprocess
 from pydantic import BaseModel, validator, ValidationError
-from utils.server_utils import *
+from utils.common import *
 from fastapi.staticfiles import StaticFiles
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
@@ -31,8 +31,8 @@ crack_collection = os.path.join(static_path, 'cracked_hashes.txt')
 
 
 router = APIRouter()
-@router.post("/HashCrack/")
-async def HashCrack(    
+@router.post("/hash-crack/")
+async def hash_crack(    
     hash_type: str = Form(...),
     hash_file: str = Form(...), 
     wordlist: str = Form(...), 
@@ -85,7 +85,8 @@ async def HashCrack(
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         _, stderr = process.communicate()
         if stderr:
-            print("Errors:", stderr)
+            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+
 
         # Giao tiếp với tiến trình con
         command = [
@@ -100,7 +101,7 @@ async def HashCrack(
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
         if stderr:
-            print("Errors:", stderr)
+            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
 
 
         if stdout == '' or stdout == None:

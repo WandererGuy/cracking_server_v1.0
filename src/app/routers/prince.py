@@ -6,9 +6,9 @@ from pydantic import BaseModel
 import configparser
 import subprocess
 from pydantic import BaseModel, validator, ValidationError
-from utils.server_utils import *
+from utils.common import *
 from fastapi.staticfiles import StaticFiles
-from utils.princeHashcat import *
+from utils.prince_hashcat import *
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
 logger = logging.getLogger(__name__)
 
@@ -35,11 +35,8 @@ pot_file = config['DEFAULT']['pot_file']
 
 router = APIRouter()
 
-
-
-
-@router.post("/PrinceGenerate/")
-async def PrinceGenerate(    
+@router.post("/prince-generate/")
+async def prince_generate(    
     prince_wordlist: str = Form(...),   # prince wordlist
     keyspace: bool = Form(False),         # Calculate number of combinations
     pw_min: int = Form(None),           # Print candidate if length is greater than NUM
@@ -85,7 +82,8 @@ async def PrinceGenerate(
 
         _, stderr = process.communicate()
         if stderr:
-            print("Errors:", stderr)
+            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+
 
         path = f"http://{host_ip}:{port_num}/static/prince_wordlist_output/{filename}"
 
@@ -97,8 +95,8 @@ async def PrinceGenerate(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/PrinceHashcat/")
-async def PrinceHashcat(    
+@router.post("/prince-hashcat/")
+async def prince_hashcat(    
     prince_wordlist: str = Form(...),   # prince wordlist
     # keyspace: bool = Form(False),         # Calculate number of combinations
     pw_min: int = Form(None),           # Print candidate if length is greater than NUM
@@ -110,7 +108,7 @@ async def PrinceHashcat(
     dupe_check_disable: bool = Form(False), # Disable dupes check for faster initial load
     save_pos_disable: bool = Form(False),   # Save the position for later resume with -s
     skip: int = Form(None),             # Skip NUM passwords from start (for distributed)
-    limit: int = Form(None),            # Limit output to NUM passwords (for distributed)
+    limit: int = Form(...),            # Limit output to NUM passwords (for distributed)
     # output_file: str = Form(None),    # Output-file
     case_permute: bool = Form(False),    # For each word in the wordlist that begins with a letter
                                         # generate a word with the opposite case of the first letter
@@ -163,7 +161,8 @@ async def PrinceHashcat(
 
 
         if stderr:
-            print("Errors:", stderr)
+            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+
 
         # Giao tiếp với tiến trình con
         full_command.append('--show')
@@ -172,7 +171,7 @@ async def PrinceHashcat(
         stdout, stderr = process.communicate()
     
         if stderr:
-            print("Errors:", stderr)
+            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
 
         if stdout == '' or stdout == None:
             return {        
