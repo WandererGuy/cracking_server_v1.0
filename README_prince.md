@@ -19,7 +19,8 @@ cd src
 ./pp64.bin dataset/wordlist.txt --pw-min=8 --keyspace
 
 
-
+give permission for bin file to be executed 
+chmod +x bin_file_path
 
 
 
