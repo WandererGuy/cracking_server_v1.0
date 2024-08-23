@@ -9,7 +9,7 @@ from pydantic import BaseModel, validator, ValidationError
 from utils.common import *
 from fastapi.staticfiles import StaticFiles
 from utils.prince_hashcat import *
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
 logger = logging.getLogger(__name__)
 
 # Get the directory where the current script is located
@@ -72,7 +72,7 @@ async def prince_generate(
                         case_permute=case_permute
                         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e), data={"url": None})
     try:
         filename = generate_unique_filename(prince_wordlist_folder)
         prince_wordlist_file = os.path.join(prince_wordlist_folder,filename)
@@ -82,17 +82,18 @@ async def prince_generate(
 
         _, stderr = process.communicate()
         if stderr:
-            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
-
+            raise HTTPException(status_code=400, detail=stderr, data={"url": None})
 
         path = f"http://{host_ip}:{port_num}/static/prince_wordlist_output/{filename}"
+        data={"detail":"Result saved successfully." ,"data":{"url":path}}
 
-        return {        
-            "message": "Result saved successfully.",   
-            "url":path,
-            }
+        return data
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail = {"message":str(e), "data": {"url":None}})
+
+                            
+
 
 
 @router.post("/prince-hashcat/")
@@ -136,7 +137,8 @@ async def prince_hashcat(
                         case_permute=case_permute
                         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail = {"message":str(e), "data": {"url":None}})
+
 
     try:
         filename = generate_unique_filename(cracked_hash_result_folder)
@@ -161,7 +163,8 @@ async def prince_hashcat(
 
 
         if stderr:
-            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+            raise HTTPException(status_code=400, detail = {"message":stderr, "data": {"url":None}})
+
 
 
         # Giao tiếp với tiến trình con
@@ -171,12 +174,17 @@ async def prince_hashcat(
         stdout, stderr = process.communicate()
     
         if stderr:
-            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+            raise HTTPException(status_code=400, detail = {"message":stderr, "data": {"url":None}})
+
 
         if stdout == '' or stdout == None:
             return {        
-            "message": "Wordlist Exhausted. Cannot crack hash"
+            "detail": "Wordlist Exhausted. Cannot crack hash",
+            "data":
+            {
+            "url": None
             }   
+            }
         with open(cracked_hash_result_file, 'w') as f:
             f.write(stdout)
 
@@ -186,12 +194,16 @@ async def prince_hashcat(
         crack_collection_url = '/static' + crack_collection_url
         path = f"http://{host_ip}:{port_num}/static/cracked_hash/{filename}"
         bonus_path = f"http://{host_ip}:{port_num}{crack_collection_url}"
-
-        return {        
-            "message": "Result saved successfully.",   
-            "url":path,
-            "bonus_message": "Already cracked hash before will be stored in.",   
-            "bonus_url":bonus_path
-            }
+        data={"detail":"Result saved successfully." ,
+                "data": 
+                {
+                "url":path, 
+                "bonus_detail": "Already cracked hash before will be stored in.",   
+                "bonus_url":bonus_path
+                }
+        }
+        return data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail= {"message":str(e), "data": {"url":None}})
+
+

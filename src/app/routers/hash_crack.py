@@ -9,7 +9,7 @@ from pydantic import BaseModel, validator, ValidationError
 from utils.common import *
 from fastapi.staticfiles import StaticFiles
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
 logger = logging.getLogger(__name__)
 
 # Get the directory where the current script is located
@@ -56,11 +56,12 @@ async def hash_crack(
         # Check if the value exists in the dictionary keys
         detail = check_value_in_dict(attack_mode, attack_mode_dict)
         if detail is not True:
-            raise HTTPException(status_code=400,detail = detail)
+            raise HTTPException(status_code=400,detail = {"message":detail, "data": {"url":None}})
 
         detail = check_value_in_dict(hash_type, hash_type_dict)     
         if detail is not True:
-            raise HTTPException(status_code=400,detail = detail)
+            raise HTTPException(status_code=400,detail = {"message":detail, "data": {"url":None}})
+
 
         hash_type = str(data_type_translate(hash_type))
         hash_file = clean_path(hash_file)
@@ -90,7 +91,8 @@ async def hash_crack(
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         _, stderr = process.communicate()
         if stderr:
-            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+            raise HTTPException(status_code=400, detail = {"message":stderr, "data": {"url":None}})
+
 
 
         # Giao tiếp với tiến trình con
@@ -106,12 +108,14 @@ async def hash_crack(
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
         if stderr:
-            raise HTTPException(status_code=400, detail=f"Errors: {stderr}")
+            raise HTTPException(status_code=400, detail = {"message":stderr, "data": {"url":None}})
+
 
 
         if stdout == '' or stdout == None:
             return {        
-            "message": "Wordlist Exhausted. Cannot crack hash"
+            "detail": "Wordlist Exhausted. Cannot crack hash",
+            "data" : {"url":None}
             }   
         with open(cracked_hash_result_file, 'w') as f:
             f.write(stdout)
@@ -125,10 +129,14 @@ async def hash_crack(
         bonus_path = f"http://{host_ip}:{port_num}{crack_collection_url}"
 
         return {        
-            "message": "Result saved successfully.",   
+            "detail": "Result saved successfully.",   
+            "data":
+            {
             "url":path,
-            "bonus_message": "Already cracked hash before will be stored in.",   
+            "bonus_detail": "Already cracked hash before will be stored in.",   
             "bonus_url":bonus_path
             }
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail = {"message":str(e), "data": {"url":None}})
+

@@ -8,10 +8,11 @@ def execute_command(command):
 def handle_stdout(stdout, path, extract_hash_result_file):
         with open (extract_hash_result_file, 'w') as f :
             f.write(stdout)
-        return {        
+            detail = {        
             "message": "Result saved successfully.", 
             "data": {"url":path}
             }   
+        return detail
 
 
 def handle_stderr(stderr):

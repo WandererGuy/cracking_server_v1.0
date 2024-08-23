@@ -56,7 +56,8 @@ async def extract_hash(
     """
     detail = check_value_in_list(file_type, support_file_type)
     if detail is not True:
-        raise HTTPException(status_code=400,detail = detail)
+        raise HTTPException(status_code=400,detail = {"message":detail, "data": {"url":None}})
+
         
     filename = generate_unique_filename(extract_hash_result_folder)
     extract_hash_result_file = extract_hash_result_folder + '/' + filename
@@ -70,15 +71,15 @@ async def extract_hash(
 
         if stdout == None or stdout == "":
             detail = "Cannot extract file.\nPossibilities: wrong file type\nOR no hash information found in file"
-            raise HTTPException(status_code=400,detail = detail)
+            raise HTTPException(status_code=400,detail = {"message":detail, "data": {"url":None}})
 
         if stderr:
             detail = handle_stderr(stderr)
-            raise HTTPException(status_code=400,detail = detail)
+            raise HTTPException(status_code=400,detail = {"message":detail, "data": {"url":None}})
 
         return handle_stdout(stdout, path, extract_hash_result_file)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail= {"message":str(e), "data": {"url":None}})
 
 
 
