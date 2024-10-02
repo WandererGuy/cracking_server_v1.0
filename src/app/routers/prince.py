@@ -22,7 +22,7 @@ static_path = os.path.join(script_dir, '..','static')
 
 prince_run_file = os.path.join(script_dir, '..','..','prince','pp64.bin')
 
-crack_collection = os.path.join(static_path, 'cracked_hashes.txt')
+crack_collection = os.path.join(static_path, "potfiles", "potfile.txt")
 cracked_hash_result_folder = os.path.join(static_path,'cracked_hash')
 prince_wordlist_folder = os.path.join(static_path,'prince_wordlist_output')
 
