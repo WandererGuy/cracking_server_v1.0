@@ -1,7 +1,7 @@
 # Full Setup Script for Environment
 
 This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.
-
+aside the code, hashcat, jtr, hydra have to be built from source code of their github repo
 ---
 
 ## I. For Kali (Note: Not in use anymore)
@@ -77,7 +77,7 @@ pip install fastapi uvicorn pydantic python-multipart tqdm
 ```
 # III. For Windows: Build from Source with Cygwin
 
-## 1. Install Cygwin
+## 1. Install Cygwin (favor for jtr)
 
 To install Cygwin, follow one of these guides:<br>
 
@@ -103,6 +103,7 @@ setup-x86_64.exe -q -P openssl
 setup-x86_64.exe -q -P libssl-dev -P libssl-devel
 ```
 
+## 2. HEADS UP NOTICE
 HEADS UP NOTICE: to build/compile jtr + hydra from source with cygwin :<br>
 1. in cygwin terminal do : 
 ```bash 
@@ -122,12 +123,17 @@ make install Will essentially copy the main program elements into the proper<br>
 places to run the app.. However, this does not take into account dependencies... (Which is what apt-get, dpkg, emerge take care of...)<br>
 4. then the .exe file will appear in folder, which is done, now u can call hydra inside hydra folder <br>
 
-
+## 3. Do it your self with jtr, hydra
+first git clone 2 repo then compile for each of them <br>
+<br>
 -------- jtr --------<br>
 https://github.com/openwall/john/blob/bleeding-jumbo/doc/INSTALL<br>
 
 
-will have to copy all cygwin dll missing into same folder run hashcat or jtr , dll will be noticed by window as missing (dll from folder install cygwin)<br>
+will have to copy necessary cygwin dll missing into the need folder run hydra or jtr , dll will be noticed by window as missing (dll from folder install cygwin)<br>
+Notice: i copy all dll in cygwin folder into the need folder <br>
+(tell by window notice when u try to run exe file , by tapping 2 times into exe file u wish to use, terminal wont show us error)<br>
+so tap 2 times into exe file john.exe (in /run of john the ripper folder) and hydra.exe <br>
 
 
 -------- hydra --------<br>
@@ -142,7 +148,7 @@ make
 make install
 ```
 
-
+## 4. hash cat
 -------- hashcat --------<br>
 https://www.msys2.org/docs/updating/<br>
 https://github.com/hashcat/hashcat/blob/master/BUILD_MSYS2.md<br>
