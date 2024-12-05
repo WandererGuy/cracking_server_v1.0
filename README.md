@@ -10,6 +10,16 @@ conda activate ...
 python src/app/main_get_status.py
 ```
 
+# if add more file type , remember to add more in
+in extract_hash.py
+find_hashcat_hash_code()
+find_hash()
+
+in common.property
+ls - variable
+support_file_type - variable 
+gen_extract_command()
+
 # Full Setup Script for Environment
 
 This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.<br>

@@ -6,27 +6,28 @@ import subprocess
 from utils.common import *
 from utils.prince_hashcat import *
 from routers.model import reply_bad_request, reply_success, reply_server_error
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
-logger = logging.getLogger(__name__)
+from routers.hash_crack import create_hashcat_command_general
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
+# logger = logging.getLogger(__name__)
 # Get the directory where the current script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# Construct the path to config.ini
 parent_dir = os.path.dirname(script_dir)    
 config_path = os.path.join(parent_dir, 'config.ini')
-
-# Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
 prince_run_file = os.path.join(os.path.dirname(parent_dir),'prince','pp64.bin')
-crack_collection = os.path.join(static_path, "potfiles", "potfile.txt")
 cracked_hash_result_folder = os.path.join(static_path,'cracked_hash')
 prince_wordlist_folder = os.path.join(static_path,'prince_wordlist_output')
+
+potfile_folder = os.path.join(static_path, "potfiles")
+session_folder = os.path.join(parent_dir, "session")
+hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
 # Read the config file
 config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
+hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
 
 router = APIRouter()
 
@@ -141,21 +142,20 @@ async def prince_hashcat(
                                         # generate a word with the opposite case of the first letter
     hash_file: str = Form(...), 
     hashcat_hash_code: str = Form(...),
-    # wordlist: str = Form(...), 
     attack_mode: str = Form(None),
     rule_path: str = Form(None),
+    restore: str = Form(None),
+    runtime: str = Form(None),
+    status: str = Form(None),
+    status_json: str = Form(None),
+    status_timer: str = Form(None),
+    gpu_number: str = Form(None)
+
 ):
     hash_type = hashcat_hash_code
-    if not os.path.exists(prince_wordlist):
-        message = f"file_path {prince_wordlist} does not exist"
-        return reply_bad_request(message = message)
-    
-    if attack_mode == None:
-        message = "please provide attack_mode"
-        return reply_bad_request (message)
-    
-    # Convert empty strings to None for optional string parameters
-    rule_path = empty_to_none(rule_path)
+    mask_file = None
+    wordlist_file = None
+                ################## PRINCE ##################
     # Handle integer parameters that may come as empty strings
     pw_min = parse_int(pw_min)
     pw_max = parse_int(pw_max)
@@ -164,16 +164,49 @@ async def prince_hashcat(
     wl_max = parse_int(wl_max)
     skip = parse_int(skip)
     limit = parse_int(limit)  # Since limit is required, ensure it's an integer
-
     # Handle boolean parameters that may come as empty strings
     dupe_check_disable = empty_to_false(dupe_check_disable)
     save_pos_disable = empty_to_false(save_pos_disable)
     case_permute = empty_to_false(case_permute)
+
+    if not os.path.exists(prince_wordlist):
+        message = f"file_path {prince_wordlist} does not exist"
+        return reply_bad_request(message = message)
+
+                ################## HASHCAT ##################
+    attack_mode = empty_to_none(attack_mode)
+    rule_path = empty_to_none(rule_path)
+    restore = empty_to_none(restore)
+    runtime = empty_to_none(runtime)
+    status = empty_to_none(status)
+    status_json = empty_to_none(status_json)
+    status_timer = empty_to_none(status_timer)
+    gpu_number = empty_to_none(gpu_number)
+
+    for item in [hash_file, rule_path]:
+        if item != None and os.path.exists(item) is False:
+            message = f'file path {item} does not exist'
+            return reply_bad_request (message)
+        
+    if status in ["True", "1", "true"]:
+        status = "True"
+
     for item in [hash_file, rule_path]:
         if item != None and os.path.exists(item) is False:
             message = f'file path {item} does not exist'
             return reply_bad_request (message)
 
+    if attack_mode == None:
+        message = "please provide attack_mode"
+        return reply_bad_request (message)
+    
+    potfile_name = generate_unique_filename(potfile_folder , extension="txt")
+    potfile_path = os.path.join(potfile_folder, potfile_name)
+    session_name = generate_unique_filename(session_folder , extension="restore")
+    output_file_name = generate_unique_filename(cracked_hash_result_folder , extension="txt")
+    output_file = os.path.join(cracked_hash_result_folder, output_file_name)
+
+                ################## PRINCE ##################
     try:
         prince_command = genPrinceCommandHashcat(
                         prince_run_file=prince_run_file,
@@ -195,67 +228,164 @@ async def prince_hashcat(
        return reply_server_error(str(e))
 
     try:
-        filename = generate_unique_filename(cracked_hash_result_folder)
-        cracked_hash_result_file = os.path.join(cracked_hash_result_folder,filename)
-        hashcat_command = gen_hashcat_command(
-                        hash_type, 
-                        hash_file , 
-                        # wordlist , 
-                        attack_mode,
-                        rule_path 
-                        )
+        # Check if the value exists in the dictionary keys
+        detail = check_value_in_dict(attack_mode, attack_mode_dict)
+        if detail is not True:
+            return reply_bad_request(message = detail)
+        detail = check_value_in_dict(hash_type, hash_type_dict)     
+        if detail is not True:
+            return reply_bad_request(message = detail)
+        hash_type = str(data_type_translate(hash_type))
+        mask_file = clean_path(mask_file)
+        hash_file = clean_path(hash_file)
+        rule_path = clean_path(rule_path)
+        wordlist_file = clean_path(wordlist_file)
+        attack_mode = str(attack_mode_translate(attack_mode))
+
+        # Build the Hashcat command
+        hashcat_input_dict = {
+        "hash_file": hash_file,
+        "mask_file": mask_file,
+        "wordlist_file": wordlist_file,
+        "hash_type": hash_type,
+        "attack_mode": attack_mode,
+        "rule_path": rule_path,
+        "session_name": session_name,
+        "restore": restore,
+        "output_file": output_file,
+        "runtime": runtime,
+        "potfile_path": potfile_path,
+        "status": status,
+        "status_json": status_json,
+        "status_timer": status_timer,
+        "gpu_number": gpu_number
+    }
+
+        command = create_hashcat_command_general(hashcat_input_dict)
+        cm = " ".join(command)
+        print ('-------------------') 
+        print (command)
+        print('')
+        print (cm)   
+
+        ####### PRINCE PIPE #######
         prince_command.append('|')
         full_command = prince_command
-        for i in hashcat_command:
+        for i in command:
             full_command.append(i)
+        cm = " ".join(command)
+        print ('-------------------') 
+        print (command)
+        print('')
+        print (cm)   
+
+        ##############
+
 
         # piping '|'require shell feature so shell = True 
-        process = subprocess.run(' '.join(full_command),
-                                    capture_output=True,
-                                    cwd="hashcat",  
-                                    shell=True, 
-                                    text=True,
-                                    encoding = 'utf-8')
+        if hashcat_running_output: text = True
+        else: text = False
+        with subprocess.Popen(full_command, 
+                            cwd="hashcat", 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE, 
+                            text=text, 
+                            shell=True,
+                            encoding='utf-8') as process:
+                # Read and print output line by line as it comes
+                flag = False
+                for line in process.stdout:
+                    if "Session..........: " in line:
+                        tmp = []
+                        flag = True
+                    if "Hardware.Mon." in line:
+                        tmp.append(line)
+                        flag = False
+                        with open (hashcat_temp_output, 'w', encoding='utf-8', errors='ignore') as f:
+                            for line in tmp:
+                                f.write(line)
+                    if flag:
+                        tmp.append(line)
+                    if hashcat_running_output: print(line, end='')  # Print the output in real-time
+            # Optionally, handle stderr (error output)
+                _, stderr = process.communicate()
+                if stderr:
+                    if "No hashes loaded" in stderr:
+                        message = "No hash found in file OR hash_type is not same type with loaded hash"
+                        return reply_bad_request(message = message)
+                    return reply_bad_request(message = stderr)
 
-        stderr = process.stderr
-
-        if stderr:
-            message = str(stderr)
-            return reply_bad_request(message)
 
 
-        # Giao tiếp với tiến trình con
-        full_command.append('--show')
-        process = subprocess.run(' '.join(full_command),
-                                    capture_output=True,
-                                    cwd="hashcat",  
-                                    shell=True, 
-                                    text=True,
-                                    encoding = 'utf-8')
 
-        stderr = process.stderr
-        stdout = process.stdout
-    
-        if stderr:
-            message = str(stderr)
-            return reply_bad_request(message)
-
-        if stdout == '' or stdout == None:
+        url_output = f"http://{host_ip}:{port_num}/static/cracked_hash/{output_file_name}"
+        ### check for result 
+        output_file_path = os.path.join(cracked_hash_result_folder, output_file)
+        if not os.path.exists(output_file_path):
             message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
-            return reply_success(message, None)
-
-        with open(cracked_hash_result_file, 'w') as f:
-            f.writelines(stdout)
-        with open(crack_collection, 'a') as f:
-            f.writelines(stdout)
-        # crack_collection_url = crack_collection.split("static",1)[1]
-        # crack_collection_url = '/static' + crack_collection_url
-        url = f"http://{host_ip}:{port_num}/static/cracked_hash/{filename}"
-        # bonus_path = f"http://{host_ip}:{port_num}{crack_collection_url}" # potfile path
-        message = "Result saved successfully"
-        return reply_success(message = message, 
-                             result = {"path":os.path.join(cracked_hash_result_folder, filename),
-                                       "url":url})
+            return reply_success(message = message,
+                                        result = None)
+                
+        with open (output_file_path, 'r') as f:
+            cracked_data_lines = f.readlines()
+        with open (output_file_path, 'r') as f: 
+            with open (hash_file, 'r') as hf:
+                hf_data = hf.readlines()
+                miss = 0 
+                for item in hf_data:
+                    if item.strip().strip('\n').strip('\t') == "":
+                        miss += 1 
+            if len(cracked_data_lines) < len(hf_data) - miss:
+                message = f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
+                return reply_success(message = message,
+                                    result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+                                            "url": url_output})
+        message = "Sucessfully crack all hashes"
+        return reply_success(message = message,
+                            result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+                                      "url": url_output})
 
     except Exception as e:
         return reply_server_error(e)
+    #     stderr = process.stderr
+
+    #     if stderr:
+    #         message = str(stderr)
+    #         return reply_bad_request(message)
+
+
+    #     # Giao tiếp với tiến trình con
+    #     full_command.append('--show')
+    #     process = subprocess.run(' '.join(full_command),
+    #                                 capture_output=True,
+    #                                 cwd="hashcat",  
+    #                                 shell=True, 
+    #                                 text=True,
+    #                                 encoding = 'utf-8')
+
+    #     stderr = process.stderr
+    #     stdout = process.stdout
+    
+    #     if stderr:
+    #         message = str(stderr)
+    #         return reply_bad_request(message)
+
+    #     if stdout == '' or stdout == None:
+    #         message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
+    #         return reply_success(message, None)
+
+    #     with open(cracked_hash_result_file, 'w') as f:
+    #         f.writelines(stdout)
+    #     with open(crack_collection, 'a') as f:
+    #         f.writelines(stdout)
+    #     # crack_collection_url = crack_collection.split("static",1)[1]
+    #     # crack_collection_url = '/static' + crack_collection_url
+    #     url = f"http://{host_ip}:{port_num}/static/cracked_hash/{filename}"
+    #     # bonus_path = f"http://{host_ip}:{port_num}{crack_collection_url}" # potfile path
+    #     message = "Result saved successfully"
+    #     return reply_success(message = message, 
+    #                          result = {"path":os.path.join(cracked_hash_result_folder, filename),
+    #                                    "url":url})
+
+    # except Exception as e:
+    #     return reply_server_error(e)

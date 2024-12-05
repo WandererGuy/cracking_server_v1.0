@@ -5,6 +5,20 @@ from routers.model import MyHTTPException
 
 support_file_type = ['BitLocker', '7-Zip', 'WinZip', 'RAR5']
 
+ls = [0, 22100, 11600, 13600, 13000, 17200, 17210, 17220, 17225, 17230]
+hash_type_dict = {}
+for item in ls:
+    hash_type_dict[str(item)] = item
+   
+
+attack_mode_dict = {
+    "Straight": 0,
+    "Combination": 1,
+    "Brute-force": 3,
+    "Hybrid Wordlist + Mask": 6,
+    "Hybrid Mask + Wordlist": 7,
+    "Association": 9
+}
 def gen_extract_command(hash_type, file_path):
     match hash_type:
         case "BitLocker":
@@ -52,32 +66,7 @@ def parse_int(value):
     except Exception as e:
         message = 'please make sure all numbers are numbers not text '
         raise MyHTTPException(status_code=400, message=message)
-
-
-# hash_type_dict = {
-#     'MD5': 0,
-#     'BitLocker': 22100,
-#     '7-Zip': 11600,
-#     'WinZip': 13600,
-#     'RAR5': 13000
-# }    
-hash_type_dict = {
-    '0': 0,
-    '22100': 22100,
-    '11600': 11600,
-    '13600': 13600,
-    '13000': 13000
-}    
-
-attack_mode_dict = {
-    "Straight": 0,
-    "Combination": 1,
-    "Brute-force": 3,
-    "Hybrid Wordlist + Mask": 6,
-    "Hybrid Mask + Wordlist": 7,
-    "Association": 9
-}
-
+ 
 def check_value_in_dict(value_to_check, dict):
     if value_to_check in dict.keys():
         return True

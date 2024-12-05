@@ -87,6 +87,11 @@ def find_hashcat_hash_code(extract_hash_result_file, real_hash):
         valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
         if valid_code is False:  return None
         else: return hashcat_hash_code
+    elif "$7z$" in real_hash:
+        hashcat_hash_code = '11600'
+        valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
+        if valid_code is False:  return None
+        else: return hashcat_hash_code
     return None        
 
 def find_hash(file_path, file_type, stdout):
@@ -121,8 +126,10 @@ def find_hash(file_path, file_type, stdout):
             real_hash = check_2 + real_hash.split(check_3, 1)[0]
             real_hash = real_hash.strip('\n')
             return real_hash
-
-
+    if file_type == "7-Zip":
+        border = os.path.basename(file_path) + ':'
+        real_hash = stdout.split(border)[1]
+        return real_hash
     else: return None
 
 
@@ -144,7 +151,7 @@ async def extract_hash(
     <br>
     Input: <br>
     file_type : type of file be extracted<br>
-    supported file type : MD5, BitLocker, 7-Zip, WinZip, RAR<br> 
+    supported file type in support_file_type: MD5, BitLocker, 7-Zip, WinZip, RAR<br> 
     file_path : path to file to be extracted<br>
     Expected response :<br>
     url to file txt with hash extracted 

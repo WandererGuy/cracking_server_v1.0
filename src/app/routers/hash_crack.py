@@ -10,7 +10,6 @@ from routers.model import reply_bad_request, reply_success, reply_server_error
 # Get the directory where the current script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
-# Construct the path to config.ini
 config_path = os.path.join(parent_dir,'config.ini')
 
 # Read the config file
@@ -18,6 +17,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
+hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
 
 # Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
@@ -95,8 +95,6 @@ async def hash_crack(
     status: str = Form(None),
     status_json: str = Form(None),
     status_timer: str = Form(None),
-    # increment: str = Form(None),
-    # increment_min: str = Form(None),
     gpu_number: str = Form(None)
 ):
     hash_type = hashcat_hash_code
@@ -198,11 +196,13 @@ async def hash_crack(
         #         return reply_bad_request(message = message)
         #     return reply_bad_request(message = process.stderr)
         # Start the process with Popen for real-time output
+        if hashcat_running_output: text = True
+        else: text = False
         with subprocess.Popen(command, 
                             cwd="hashcat", 
                             stdout=subprocess.PIPE, 
                             stderr=subprocess.PIPE, 
-                            text=True, 
+                            text=text, 
                             shell=True,
                             encoding='utf-8') as process:
                 # Read and print output line by line as it comes
@@ -219,7 +219,7 @@ async def hash_crack(
                                 f.write(line)
                     if flag:
                         tmp.append(line)
-                    print(line, end='')  # Print the output in real-time
+                    if hashcat_running_output: print(line, end='')  # Print the output in real-time
             # Optionally, handle stderr (error output)
                 _, stderr = process.communicate()
                 if stderr:
@@ -235,7 +235,7 @@ async def hash_crack(
         ### check for result 
         output_file_path = os.path.join(cracked_hash_result_folder, output_file)
         if not os.path.exists(output_file_path):
-            message = "Wordlist Exhausted. Cannot crack hash"
+            message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
             return reply_success(message = message,
                                         result = None)
                 
