@@ -104,13 +104,23 @@ setup-x86_64.exe -q -P libssl-dev -P libssl-devel
 ```
 
 HEADS UP NOTICE: to build/compile jtr + hydra from source with cygwin :<br>
-1. in cygwin terminal do : ./configure <br>
+1. in cygwin terminal do : 
+```bash 
+./configure 
+```
 Inside the folder, do a ./configure This will check all your environment variables, paths, etc and create a 'make' file. <br>
-2. Then in cygwin terminal do : make<br>
+2. Then in cygwin terminal do : 
+```bash 
+make
+```
  That should compile a binary. <br>
-3. Then in cygwin terminal do : make install<br>
- make install Will essentially copy the main program elements into the proper<br> places to run the app.. However, this does not take into account dependencies... (Which is what apt-get, dpkg, emerge take care of...)<br>
-4. then the exe file will appear in folder, which is done, now u can call hydra inside hydra folder <br>
+3. Then in cygwin terminal do : 
+```bash 
+make install
+```
+make install Will essentially copy the main program elements into the proper<br>
+places to run the app.. However, this does not take into account dependencies... (Which is what apt-get, dpkg, emerge take care of...)<br>
+4. then the .exe file will appear in folder, which is done, now u can call hydra inside hydra folder <br>
 
 
 -------- jtr --------<br>
