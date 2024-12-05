@@ -224,7 +224,7 @@ async def hash_crack(
                 _, stderr = process.communicate()
                 if stderr:
                     if "No hashes loaded" in stderr:
-                        message = "No hash found in file OR hash_type is not same type with loaded hash"
+                        message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
                         return reply_bad_request(message = message)
                     return reply_bad_request(message = stderr)
 
