@@ -1,34 +1,140 @@
+# Full Setup Script for Environment
 
+This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.
 
+---
 
+## I. For Kali (Note: Not in use anymore)
 
-Intsall VScode 
-https://phoenixnap.com/kb/install-deb-files-ubuntu
+### 1. Install VSCode
 
+Follow these steps to install Visual Studio Code:
 
+1. **Download the DEB package** for VSCode from the [official site](https://code.visualstudio.com/Download) or use the guide:
+    - [Install DEB files on Ubuntu](https://phoenixnap.com/kb/install-deb-files-ubuntu)
 
-
-
-sudo dpkg -i <package path>
-
-Install venv 
-
+2. **Install VSCode** by running the following command:
+    ```bash
+    sudo dpkg -i <package_path>
+    ```
+3. **install venv**
+Install venv <br>
 https://gist.github.com/Geoyi/d9fab4f609e9f75941946be45000632b
 
+### 2. Install Virtual Environment (venv)
 
-sudo apt update -y
-sudo apt install python3 -y 
-cd /home/manh264/Desktop/kali_api
-python3 -m venv env
-source env/bin/activate 
+Follow the guide to install and set up the virtual environment:
+
+1. **Update system packages:**
+    ```bash
+    sudo apt update -y
+    ```
+
+2. **Install Python 3:**
+    ```bash
+    sudo apt install python3 -y
+    ```
+
+3. **Navigate to your project folder:**
+    ```bash
+    cd /home/manh264/Desktop/kali_api
+    ```
+
+4. **Create a virtual environment:**
+    ```bash
+    python3 -m venv env
+    ```
+
+5. **Activate the virtual environment:**
+    ```bash
+    source env/bin/activate
+    ```
+
+6. **Install necessary Python packages:**
+    ```bash
+    pip install fastapi uvicorn pydantic python-multipart tqdm
+    ```
+
+---
+
+## II. For Windows
+
+### 1. Install Conda
+
+1. **Install Conda** (if not already installed). If you don't have Conda, [download and install Anaconda](https://www.anaconda.com/products/individual).
+
+2. **Create a Conda environment**:
+    ```bash
+    conda create --name <env_name> python==3.10
+    conda activate <env_name>
+    ```
+
+### 2. Install necessary packages
+
+Install the required Python packages in your Conda environment:
+```bash
 pip install fastapi uvicorn pydantic python-multipart tqdm
+```
+# III. For Windows: Build from Source with Cygwin
 
-for window :
-install conda 
-jtr 
-hashcat 
-both have to be built from source for latest patches 
+## 1. Install Cygwin
 
-will have to copy some dll missing into same folder run hashcat or jtr , dll will be noticed missing (dll from folder install )
+To install Cygwin, follow one of these guides:<br>
 
-how to build from source 
+notice that: 
+Cygwin maps Windows drives under /cygdrive/, thats how u can access window file in cygwin<br>
+
+first install cygwin <br>
+can download like online vid <br>
+https://www.youtube.com/watch?v=J3XQbrJ2GeU<br>
+
+
+or like jtr set up is also ok <br>
+https://github.com/openwall/john/blob/bleeding-jumbo/doc/INSTALL<br>
+
+
+after that :<br>
+tackle issue of ssl<br>
+For ssl <br>
+In folder download setup-x86_64.exe for cygwin , open terminal  <br>
+```bash
+setup-x86_64.exe -q -P openssl-devel
+setup-x86_64.exe -q -P openssl
+setup-x86_64.exe -q -P libssl-dev -P libssl-devel
+```
+
+HEADS UP NOTICE: to build/compile jtr + hydra from source with cygwin :<br>
+1. in cygwin terminal do : ./configure <br>
+Inside the folder, do a ./configure This will check all your environment variables, paths, etc and create a 'make' file. <br>
+2. Then in cygwin terminal do : make<br>
+ That should compile a binary. <br>
+3. Then in cygwin terminal do : make install<br>
+ make install Will essentially copy the main program elements into the proper<br> places to run the app.. However, this does not take into account dependencies... (Which is what apt-get, dpkg, emerge take care of...)<br>
+4. then the exe file will appear in folder, which is done, now u can call hydra inside hydra folder <br>
+
+
+-------- jtr --------<br>
+https://github.com/openwall/john/blob/bleeding-jumbo/doc/INSTALL<br>
+
+
+will have to copy all cygwin dll missing into same folder run hashcat or jtr , dll will be noticed by window as missing (dll from folder install cygwin)<br>
+
+
+-------- hydra --------<br>
+https://github.com/vanhauser-thc/thc-hydra<br>
+HOW TO COMPILE<br>
+
+To configure, compile and install hydra, just type: (same as jtr)
+
+```bash 
+./configure
+make
+make install
+```
+
+
+-------- hashcat --------<br>
+https://www.msys2.org/docs/updating/<br>
+https://github.com/hashcat/hashcat/blob/master/BUILD_MSYS2.md<br>
+
+
