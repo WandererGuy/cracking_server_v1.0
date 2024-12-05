@@ -12,10 +12,11 @@ python src/app/main_get_status.py
 
 # Full Setup Script for Environment
 
-This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.
-aside the code, hashcat, jtr, hydra have to be built from source code of their github repo
----
-
+This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.<br>
+Aside the code, hashcat, jtr, hydra have to be built from source code of their github repo<br>
+though i already have 3 folder name : jtr, hashcat, hydra , it is still recommended u replace 3 folders <br>
+with your own build/compile one to match your system config, path (instruction down below)<br>
+My system is window 11
 ## I. For Kali (Note: Not in use anymore)
 
 ### 1. Install VSCode
