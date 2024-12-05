@@ -21,4 +21,12 @@ sudo apt install python3 -y
 cd /home/manh264/Desktop/kali_api
 python3 -m venv env
 source env/bin/activate 
-pip install fastapi uvicorn pydantic python-multipart
+pip install fastapi uvicorn pydantic python-multipart tqdm
+
+for window :
+install conda 
+jtr 
+hashcat 
+both have to be built from source for latest patches 
+
+will have to copy some dll missing into same folder run hashcat or jtr , dll will be noticed missing (dll from folder install )

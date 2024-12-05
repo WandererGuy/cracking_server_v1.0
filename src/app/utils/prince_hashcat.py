@@ -1,23 +1,23 @@
 from utils.common import *
 from fastapi import FastAPI, HTTPException, Form, APIRouter
-
+from routers.model import reply_bad_request, reply_success, reply_server_error, MyHTTPException, my_exception_handler
 def gen_hashcat_command(
-    hash_type: str ,
+    hashcat_hash_code: str ,
     hash_file: str , 
     # wordlist: str , 
     attack_mode: str,
     rule_path: str 
     ):
-
+    hash_type = hashcat_hash_code
     # Check if the value exists in the dictionary keys
     detail = check_value_in_dict(attack_mode, attack_mode_dict)
     if detail is not True:
-        raise HTTPException(status_code=400,detail = detail)
-
+        raise  MyHTTPException(status_code=400,
+                                message = detail)
     detail = check_value_in_dict(hash_type, hash_type_dict)     
     if detail is not True:
-        raise HTTPException(status_code=400,detail = detail) 
-
+        raise  MyHTTPException(status_code=400,
+                                    message = detail)
     hash_type = str(data_type_translate(hash_type))
     hash_file = clean_path(hash_file)
     # wordlist = clean_path(wordlist)

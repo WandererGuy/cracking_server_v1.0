@@ -1,18 +1,18 @@
 import subprocess
+import os 
 def execute_command(command):
     """Execute the given command and return stdout, stderr."""
-    result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = result.communicate()
-    return stdout, stderr
+    
+    result = subprocess.run(command,
+                            capture_output=True, 
+                            cwd="jtr/run",
+                            shell=True,
+                            text=True, 
+                            encoding = 'utf-8')
+    return result.stdout, result.stderr
 
-def handle_stdout(stdout, path, extract_hash_result_file):
-        with open (extract_hash_result_file, 'w') as f :
-            f.write(stdout)
-            detail = {        
-            "message": "Result saved successfully.", 
-            "data": {"url":path}
-            }   
-        return detail
+
+                    
 
 
 def handle_stderr(stderr):

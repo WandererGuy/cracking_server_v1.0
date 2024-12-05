@@ -1,16 +1,11 @@
-from fastapi import FastAPI, HTTPException, Form, APIRouter
+from fastapi import Form, APIRouter
 import os 
-import uvicorn
-import logging
-from pydantic import BaseModel
 import configparser
 import subprocess
-from pydantic import BaseModel, validator, ValidationError
 from utils.common import *
-from fastapi.staticfiles import StaticFiles
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
-logger = logging.getLogger(__name__)
+from routers.model import reply_bad_request, reply_success, reply_server_error
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
+# logger = logging.getLogger(__name__)
 
 # Get the directory where the current script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,16 +18,14 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
-pot_file = config['DEFAULT']['pot_file'] 
 
 # Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
-
 crack_collection = os.path.join(static_path, "potfiles", "potfile.txt")
-
 session_folder = os.path.join(parent_dir, "session")
 cracked_hash_result_folder = os.path.join(static_path, 'cracked_hash')
 potfile_folder = os.path.join(static_path, "potfiles")
+hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
 
     
@@ -79,8 +72,10 @@ def create_hashcat_command_general(input: dict):
         if value != None:
             if key in trigger_dict:
                 command.append(trigger_dict[key])
-            if key not in non_value_ls:
-                command.append(value)
+                
+            if key not in non_value_ls :
+                if key != "status": # since hashcat enable timer by not having value for status
+                    command.append(value)
 
     return command
 
@@ -92,7 +87,7 @@ async def hash_crack(
     hash_file: str = Form(...),
     mask_file: str = Form(None),
     wordlist_file: str = Form(None),
-    hash_type: str = Form(...),
+    hashcat_hash_code: str = Form(...),
     attack_mode: str = Form(None),
     rule_path: str = Form(None),
     restore: str = Form(None),
@@ -100,34 +95,37 @@ async def hash_crack(
     status: str = Form(None),
     status_json: str = Form(None),
     status_timer: str = Form(None),
-    increment: str = Form(None),
-    increment_min: str = Form(None),
+    # increment: str = Form(None),
+    # increment_min: str = Form(None),
     gpu_number: str = Form(None)
 ):
-    attack_mode
-    if mask_file != None and wordlist_file != None:
-        return {        
-            "status": 0,   
-            "error_code": 400,
-            "error_message": "please only provide 1 wordlist or 1 masklist",
-            "result":
-                {
-                "url_output": None,
-                "messsage" : None
-                }
-        }
-    if attack_mode == None:
-        return {        
-            "status": 0,   
-            "error_code": 400,
-            "error_message": "please provide attack_mode",
-            "result":
-                {
-                "url_output": None,
-                "messsage" : None
-                }
-        }
+    hash_type = hashcat_hash_code
+    mask_file = empty_to_none(mask_file)
+    wordlist_file = empty_to_none(wordlist_file)
+    attack_mode = empty_to_none(attack_mode)
+    rule_path = empty_to_none(rule_path)
+    restore = empty_to_none(restore)
+    runtime = empty_to_none(runtime)
+    status = empty_to_none(status)
+    status_json = empty_to_none(status_json)
+    status_timer = empty_to_none(status_timer)
+    gpu_number = empty_to_none(gpu_number)
 
+    if status in ["True", "1", "true"]:
+        status = "True"
+
+
+    for item in [hash_file, mask_file, wordlist_file, rule_path]:
+        if item != None and os.path.exists(item) is False:
+            message = f'file path {item} does not exist'
+            return reply_bad_request (message)
+
+    if mask_file != None and wordlist_file != None:
+        message = "please only provide 1 wordlist or 1 masklist"
+        return reply_bad_request (message)
+    if attack_mode == None:
+        message = "please provide attack_mode"
+        return reply_bad_request (message)
 
     potfile_name = generate_unique_filename(potfile_folder , extension="txt")
     potfile_path = os.path.join(potfile_folder, potfile_name)
@@ -151,28 +149,10 @@ async def hash_crack(
         # Check if the value exists in the dictionary keys
         detail = check_value_in_dict(attack_mode, attack_mode_dict)
         if detail is not True:
-            return {        
-                "status": 0,   
-                "error_code": 400,
-                "error_message": detail,
-                "result":
-                    {
-                    "url_output": None,
-                    "messsage" : None
-                    }
-            }
+            return reply_bad_request(message = detail)
         detail = check_value_in_dict(hash_type, hash_type_dict)     
         if detail is not True:
-            return {        
-                "status": 0,   
-                "error_code": 400,
-                "error_message": detail,
-                "result":
-                    {
-                    "url_output": None,
-                    "messsage" : None
-                    }
-            }
+            return reply_bad_request(message = detail)
         hash_type = str(data_type_translate(hash_type))
         mask_file = clean_path(mask_file)
         hash_file = clean_path(hash_file)
@@ -180,9 +160,7 @@ async def hash_crack(
         wordlist_file = clean_path(wordlist_file)
         attack_mode = str(attack_mode_translate(attack_mode))
 
-        
         # Build the Hashcat command
-
         hashcat_input_dict = {
         "hash_file": hash_file,
         "mask_file": mask_file,
@@ -202,38 +180,65 @@ async def hash_crack(
     }
 
         command = create_hashcat_command_general(hashcat_input_dict)
-        process = subprocess.run(command,
-                                capture_output=True, 
-                                text=True)
-        # wrong ccommand will return nothing 
+        cm = " ".join(command)
+        print ('-------------------') 
+        print (command)
+        print('')
+        print (cm)           
+        # process = subprocess.run(command,
+        #                         capture_output=True, 
+        #                         cwd="hashcat",
+        #                         shell=True,
+        #                         text=True, 
+        #                         encoding = 'utf-8')
+        # # wrong ccommand will return nothing 
+        # if process.stderr:
+        #     if "No hashes loaded" in process.stderr:
+        #         message = "No hash found in file OR hash_type is not same type with loaded hash"
+        #         return reply_bad_request(message = message)
+        #     return reply_bad_request(message = process.stderr)
+        # Start the process with Popen for real-time output
+        with subprocess.Popen(command, 
+                            cwd="hashcat", 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE, 
+                            text=True, 
+                            shell=True,
+                            encoding='utf-8') as process:
+                # Read and print output line by line as it comes
+                flag = False
+                for line in process.stdout:
+                    if "Session..........: " in line:
+                        tmp = []
+                        flag = True
+                    if "Hardware.Mon." in line:
+                        tmp.append(line)
+                        flag = False
+                        with open (hashcat_temp_output, 'w', encoding='utf-8', errors='ignore') as f:
+                            for line in tmp:
+                                f.write(line)
+                    if flag:
+                        tmp.append(line)
+                    print(line, end='')  # Print the output in real-time
+            # Optionally, handle stderr (error output)
+                _, stderr = process.communicate()
+                if stderr:
+                    if "No hashes loaded" in stderr:
+                        message = "No hash found in file OR hash_type is not same type with loaded hash"
+                        return reply_bad_request(message = message)
+                    return reply_bad_request(message = stderr)
 
-        if process.stderr:
-            return {        
-                "status": 0,   
-                "error_code": 400,
-                "error_message": process.stderr,
-                "result":
-                    {
-                    "url_output": None,
-                    "messsage" : None
-                    }
-            }
-        
+
+
+
         url_output = f"http://{host_ip}:{port_num}/static/cracked_hash/{output_file_name}"
-
         ### check for result 
         output_file_path = os.path.join(cracked_hash_result_folder, output_file)
         if not os.path.exists(output_file_path):
-            return {        
-                    "status": 1,   
-                    "error_code": None,
-                    "error_message": None,
-                    "result":
-                        {
-                        "url_output": None,
-                        "message": "Wordlist Exhausted. Cannot crack hash"
-                        }
-                }
+            message = "Wordlist Exhausted. Cannot crack hash"
+            return reply_success(message = message,
+                                        result = None)
+                
         with open (output_file_path, 'r') as f:
             cracked_data_lines = f.readlines()
         with open (output_file_path, 'r') as f: 
@@ -244,38 +249,20 @@ async def hash_crack(
                     if item.strip().strip('\n').strip('\t') == "":
                         miss += 1 
             if len(cracked_data_lines) < len(hf_data) - miss:
-                return {        
-                    "status": 1,   
-                    "error_code": None,
-                    "error_message": None,
-                    "result":
-                        {
-                        "url_output": url_output,
-                        "message": f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
-                        }
-                }
-
-        return {        
-            "status": 1,   
-            "error_code": None,
-            "error_message": None,
-            "result":
-                {
-                "url_output": url_output,
-                "messsage" : "Successfully crack all hashes"
-                }
-        }
-
+                message = f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
+                return reply_success(message = message,
+                                    result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+                                            "url": url_output})
+        message = "Sucessfully crack all hashes"
+        return reply_success(message = message,
+                            result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+                                      "url": url_output})
 
     except Exception as e:
-        return {        
-            "status": 0,   
-            "error_code": 500,
-            "error_message": e,
-            "result":
-                {
-                "url_output": None,
-                "messsage" : None
-                }
-        }
+        return reply_server_error(e)
     
+@router.get("/get-hash-crack-status/")
+async def get_hash_crack_status():
+    with open(hashcat_temp_output, 'r', encoding='utf-8', errors='ignore') as f:
+        data = f.readlines()
+    return data

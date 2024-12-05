@@ -5,7 +5,9 @@
 CFLAGS = -W -Wall -std=c99 -O2 -s
 #CFLAGS = -W -Wall -std=c99 -g
 
-UNAME                   := $(shell uname -s)
+# UNAME                   := $(shell uname -s)
+UNAME := Windows
+
 
 CC_LINUX32        = gcc
 CC_LINUX64        = gcc

@@ -9,7 +9,16 @@ exe error place libstdc++-6.dll file somewhere in /ucrt folder into C++ run code
 
 
 
-Usage 
+
+window set up 
+install chocolatey online guide 
+install make: choco install make 
+in prince directory , run :make 
+now can run ./pp64.bin command in git bash 
+
+
+
+Usage  
 first run make for c file to create ./pp64.bin -h
 guide https://www.youtube.com/watch?v=ghL2WzJQwzY&list=PLz7eHzfof8WUTMtx5SPe4FQQr_raTw9Xg&index=12
 

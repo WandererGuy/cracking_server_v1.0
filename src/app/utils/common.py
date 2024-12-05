@@ -1,14 +1,72 @@
 import uuid
 import os
+from routers.model import MyHTTPException
+# change this varibale require change gen_extract_command function too 
 
 support_file_type = ['BitLocker', '7-Zip', 'WinZip', 'RAR5']
 
+def gen_extract_command(hash_type, file_path):
+    match hash_type:
+        case "BitLocker":
+            command = [
+                'bitlocker2john',
+                '-i',
+                file_path
+            ]
+            
+        case "7-Zip":
+            command = [
+                '7z2john',
+                file_path
+            ]        
+        case "WinZip":
+            command = [
+                'zip2john',
+                file_path
+            ]
+        case "RAR5":
+            command = [
+                'rar2john',
+                file_path
+            ]
+        case _:
+            return "Default case"
+    return command
+
+
+def empty_to_none(value):
+    return None if value == '' else value
+
+def empty_to_false(value):
+    if value in (None, '', 'false', 'False', '0'):
+        return False
+    elif value in ('true', 'True', '1'):
+        return True
+        
+    return bool(value)
+
+def parse_int(value):
+    value = empty_to_none(value)
+    try:
+        return int(value) if value is not None else None
+    except Exception as e:
+        message = 'please make sure all numbers are numbers not text '
+        raise MyHTTPException(status_code=400, message=message)
+
+
+# hash_type_dict = {
+#     'MD5': 0,
+#     'BitLocker': 22100,
+#     '7-Zip': 11600,
+#     'WinZip': 13600,
+#     'RAR5': 13000
+# }    
 hash_type_dict = {
-    'MD5': 0,
-    'BitLocker': 22100,
-    '7-Zip': 11600,
-    'WinZip': 13600,
-    'RAR5': 13000
+    '0': 0,
+    '22100': 22100,
+    '11600': 11600,
+    '13600': 13600,
+    '13000': 13000
 }    
 
 attack_mode_dict = {
@@ -42,44 +100,18 @@ def list_value_in_dict(support_file_type_list):
             s += i + ', '
         return s
 
-def gen_extract_command(hash_type, file_path):
-    match hash_type:
-        case 22100:
-            command = [
-                'bitlocker2john',
-                file_path
-            ]
-            return "Handled case one"
-        case 11600:
-            command = [
-                '7z2john',
-                file_path
-            ]        
-        case 13600:
-            command = [
-                'zip2john',
-                file_path
-            ]
-        case 13000:
-            command = [
-                'rar2john',
-                file_path
-            ]
-        case _:
-            return "Default case"
-    return command
 
 
 def data_type_translate(data_name):
-    return hash_type_dict[data_name]
-
+    # return hash_type_dict[data_name]
+    return data_name
 def attack_mode_translate(attack_mode):
     return attack_mode_dict[attack_mode]   
  
 def clean_path (path):
-    if path != None and path != '':
-        path = '/mnt/'+ path
-        path = path.replace('D:', 'd').replace('C:','c').replace('E:','e').replace('F:','f').replace('\\', '/')
+    # if path != None and path != '':
+    #     path = '/mnt/'+ path
+    #     path = path.replace('D:', 'd').replace('C:','c').replace('E:','e').replace('F:','f').replace('\\', '/')
     return path
 
 # def refine_hash (hash_type, hash):
@@ -90,8 +122,9 @@ def clean_path (path):
                 
     #         ]
     #         return "Handled case one"
-        
-
+def clean_path_v2 (path):     
+    path = path.replace('\\\\', '/')   
+    return path.replace ('\\', '/')
 def generate_unique_filename(UPLOAD_FOLDER, extension="txt"):
     if extension != None:
         filename = f"{uuid.uuid4()}.{extension}"
