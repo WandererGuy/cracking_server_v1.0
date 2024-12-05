@@ -30,3 +30,5 @@ hashcat
 both have to be built from source for latest patches 
 
 will have to copy some dll missing into same folder run hashcat or jtr , dll will be noticed missing (dll from folder install )
+
+how to build from source 
