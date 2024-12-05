@@ -12,10 +12,18 @@ exe error place libstdc++-6.dll file somewhere in /ucrt folder into C++ run code
 
 window set up 
 install chocolatey online guide 
-install make: choco install make 
-in prince directory , run :make 
-now can run ./pp64.bin command in git bash 
-
+install make: 
+```bash
+choco install make 
+```
+in prince directory , run :
+```bash
+make 
+```
+now can run git bash 
+```bash
+ ./pp64.bin 
+```
 
 
 Usage  
@@ -28,7 +36,7 @@ cd src
 ./pp64.bin dataset/wordlist.txt --pw-min=8 --keyspace
 
 
-give permission for bin file to be executed 
+give permission for bin file to be executed (if in linux)
 chmod +x bin_file_path
 
 

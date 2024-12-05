@@ -1,3 +1,15 @@
+# Usage
+change to ip of the host in src/app/config.ini
+```bash
+conda activate ...
+python src/app/main.py
+```
+in another terminal
+```bash
+conda activate ...
+python src/app/main_get_status.py
+```
+
 # Full Setup Script for Environment
 
 This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.
@@ -154,3 +166,4 @@ https://www.msys2.org/docs/updating/<br>
 https://github.com/hashcat/hashcat/blob/master/BUILD_MSYS2.md<br>
 
 
+i remove jtr/run/arch.h (file corrupted somehow) (hopes nothing go wrong)

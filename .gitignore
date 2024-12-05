@@ -5,5 +5,8 @@ hashcat/*.induct
 hashcat/*.log
 hashcat/*.restore
 hashcat/*.potfile
+hashcat/*.pid
+hashcat/*.outfiles
+wordlist_samples
 
 /*.rar
