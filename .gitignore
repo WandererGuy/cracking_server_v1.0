@@ -1,12 +1,7 @@
 env
 src/app/static
 samples/disk_E.image.001
-hashcat/*.induct
-hashcat/*.log
-hashcat/*.restore
-hashcat/*.potfile
-hashcat/*.pid
-hashcat/*.outfiles
+hashcat
 wordlist_samples
 
 /*.rar

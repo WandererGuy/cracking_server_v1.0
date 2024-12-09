@@ -50,6 +50,8 @@ os.makedirs(os.path.join(static_path, "prince_wordlist"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "prince_wordlist_output"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "backend","cracked_hash"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "backend","remaining_hash"), exist_ok=True)
+os.makedirs(os.path.join(static_path,"backend",'hashcat_hash_code'), exist_ok=True)
+os.makedirs(os.path.join(static_path,'backend','hash_dump'), exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 

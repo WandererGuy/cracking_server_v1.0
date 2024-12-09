@@ -32,6 +32,7 @@ fake_wordlist_path = os.path.join(running_dir, 'samples','wordlist','fake.txt')
 temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
 hashcat_hash_code_dict = {
+    "": ["0"],  
     "$zip2$": ['13600'],
     "$pkzip2$": ['17200', '17210', '17220', '17225', '17230'],
     "$rar5$": ['13000'],
@@ -73,7 +74,7 @@ def find_hashcat_hash_code(extract_hash_result_file, real_hash):
                 valid_code, error = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
                 if valid_code is False: continue
                 else: return hashcat_hash_code
-            break # since unique clue only found once 
+            break # since unique type only found once 
     return None
 
 def find_hash(file_type, stdout):
