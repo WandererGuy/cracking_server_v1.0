@@ -11,7 +11,9 @@ from fastapi.staticfiles import StaticFiles
 from routers.hash_crack import router as hash_crack_router
 from routers.extract_hash import router as extract_hash_router 
 from routers.prince import router as prince_router 
+
 from routers.model import MyHTTPException, my_exception_handler
+from utils.common import empty_to_false
 
 from starlette.responses import RedirectResponse
 
@@ -34,6 +36,7 @@ app = FastAPI()
 app.include_router(hash_crack_router)
 app.include_router(extract_hash_router)
 app.include_router(prince_router)
+
 app.add_exception_handler(MyHTTPException, my_exception_handler)
 
 
@@ -45,11 +48,10 @@ os.makedirs(os.path.join(static_path, "extract_hash_results"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "potfiles"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "prince_wordlist"), exist_ok=True)
 os.makedirs(os.path.join(static_path, "prince_wordlist_output"), exist_ok=True)
+os.makedirs(os.path.join(static_path, "backend","cracked_hash"), exist_ok=True)
+os.makedirs(os.path.join(static_path, "backend","remaining_hash"), exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=static_path), name="static")
-
-
-
 
 @app.get("/")
 async def root():
@@ -62,7 +64,8 @@ async def root():
 
 def main():
     print ('INITIALIZING FASTAPI SERVER')
-    if not production: uvicorn.run("main:app", host=host_ip, port=int(port_num), reload=True)
+    if empty_to_false(production) == False: 
+        uvicorn.run("main:app", host=host_ip, port=int(port_num), reload=True)
     else: uvicorn.run(app, host=host_ip, port=int(port_num), reload=False)
 
 

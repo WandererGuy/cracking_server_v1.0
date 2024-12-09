@@ -52,6 +52,7 @@ def empty_to_none(value):
     return None if value == '' else value
 
 def empty_to_false(value):
+    value = value.strip('\n').strip()
     if value in (None, '', 'false', 'False', '0'):
         return False
     elif value in ('true', 'True', '1'):
@@ -97,11 +98,11 @@ def data_type_translate(data_name):
 def attack_mode_translate(attack_mode):
     return attack_mode_dict[attack_mode]   
  
-def clean_path (path):
-    # if path != None and path != '':
-    #     path = '/mnt/'+ path
-    #     path = path.replace('D:', 'd').replace('C:','c').replace('E:','e').replace('F:','f').replace('\\', '/')
-    return path
+# def clean_path (path):
+#     # if path != None and path != '':
+#     #     path = '/mnt/'+ path
+#     #     path = path.replace('D:', 'd').replace('C:','c').replace('E:','e').replace('F:','f').replace('\\', '/')
+#     return path
 
 # def refine_hash (hash_type, hash):
     # match hash_type:
@@ -111,7 +112,7 @@ def clean_path (path):
                 
     #         ]
     #         return "Handled case one"
-def clean_path_v2 (path):     
+def fix_path (path):     
     path = path.replace('\\\\', '/')   
     return path.replace ('\\', '/')
 def generate_unique_filename(UPLOAD_FOLDER, extension="txt"):
@@ -133,3 +134,15 @@ def check_result_available(file):
             return False
         else:
             return True
+        
+def handle_response(response):
+    # Check if the response is in JSON format
+    if response.status_code == 200:  # Check if the request was successful
+        try:
+            json_data = response.json()  # Parse the JSON response
+            return json_data  # Print the parsed JSON
+        except ValueError:
+            raise MyHTTPException(status_code=500, message = "Backend progress have a Response is not valid JSON")
+    else:
+        raise MyHTTPException(status_code=500, message = f"Request failed with status code {response.status_code}")
+    # sys.exit()

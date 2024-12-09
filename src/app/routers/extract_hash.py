@@ -31,6 +31,15 @@ running_dir = os.getcwd()
 fake_wordlist_path = os.path.join(running_dir, 'samples','wordlist','fake.txt')
 temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
+hashcat_hash_code_dict = {
+    "$zip2$": ['13600'],
+    "$pkzip2$": ['17200', '17210', '17220', '17225', '17230'],
+    "$rar5$": ['13000'],
+    "$bitlocker$": ['22100'],
+    "$7z$": ['11600']
+}
+
+
 def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
     command = ["hashcat"]    
     command.append(extract_hash_result_file)
@@ -52,54 +61,27 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
         # Read and print output line by line as it comes
         for line in process.stdout:
             print(line, end='')  # Print the output in real-time
-        
-        if process.stderr:
-            if "No hashes loaded" in process.stderr:
-                return False
-    # process = subprocess.run(command,
-    #                         capture_output=True, 
-    #                         cwd="hashcat",
-    #                         shell=True,
-    #                         text=True, 
-    #                         encoding = 'utf-8')
-    # if 'No hashes loaded.' in process.stderr:
-    #     return False
+            for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:
+                if error in line:
+                    return False, error
+    return True, None
+
 def find_hashcat_hash_code(extract_hash_result_file, real_hash):
-    if "$zip2$" in real_hash:
-        hashcat_hash_code = '13600'
-        valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
-        if valid_code is False:  return None
-        else: return hashcat_hash_code
+    for key, value in hashcat_hash_code_dict.items():
+        if key in real_hash:
+            for hashcat_hash_code in value:
+                valid_code, error = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
+                if valid_code is False: continue
+                else: return hashcat_hash_code
+            break # since unique clue only found once 
+    return None
 
-    elif "$pkzip2$" in real_hash:
-        for hashcat_hash_code in ['17200', '17210', '17220', '17225', '17230']:
-            valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
-            if valid_code is False: continue
-            else: return hashcat_hash_code
-
-    elif "$rar5$" in real_hash:
-        hashcat_hash_code = '13000'
-        valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
-        if valid_code is False:  return None
-        else: return hashcat_hash_code
-    elif "$bitlocker$" in real_hash:
-        hashcat_hash_code = '22100'
-        valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
-        if valid_code is False:  return None
-        else: return hashcat_hash_code
-    elif "$7z$" in real_hash:
-        hashcat_hash_code = '11600'
-        valid_code = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
-        if valid_code is False:  return None
-        else: return hashcat_hash_code
-    return None        
-
-def find_hash(file_path, file_type, stdout):
-    real_hash = None
+def find_hash(file_type, stdout):
+    # real_hash = None
     print ('------------------ file_type ------------------')
     print (file_type)
     if file_type == "RAR5":
-        border = os.path.basename(file_path) + ':'
+        border = ':'
         real_hash = stdout.split(border)[1]
         return real_hash
     elif file_type == "WinZip":
@@ -126,8 +108,8 @@ def find_hash(file_path, file_type, stdout):
             real_hash = check_2 + real_hash.split(check_3, 1)[0]
             real_hash = real_hash.strip('\n')
             return real_hash
-    if file_type == "7-Zip":
-        border = os.path.basename(file_path) + ':'
+    elif file_type == "7-Zip":
+        border = ':'
         real_hash = stdout.split(border)[1]
         return real_hash
     else: return None
@@ -164,7 +146,7 @@ async def extract_hash(
     filename = generate_unique_filename(extract_hash_result_folder)
     extract_hash_result_file = os.path.join(extract_hash_result_folder, filename)
 
-    command = gen_extract_command(file_type, clean_path_v2(file_path))
+    command = gen_extract_command(file_type, fix_path(file_path))
     print ('running command')
     print (" ".join(command))
     try:
@@ -177,7 +159,7 @@ async def extract_hash(
             detail = "Cannot extract file. Maybe: wrong file type OR no hash information found in file OR file is too small/ nearly empty"
             return reply_bad_request(detail)
 
-        real_hash = find_hash(file_path, file_type, stdout)
+        real_hash = find_hash(file_type, stdout)
         if real_hash == None:
             detail = "Cannot extract hash from stdout, hash have not yet supported by system"
             return reply_bad_request(detail)
@@ -193,7 +175,7 @@ async def extract_hash(
             return reply_bad_request(message)
         path = f"http://{host_ip}:{port_num}/static/extract_hash_results/{filename}"
         result =                 {
-                "path": clean_path_v2(extract_hash_result_file), 
+                "path": fix_path(extract_hash_result_file), 
                 "url": path,
                 "hashcat_hash_code": hashcat_hash_code
                  }

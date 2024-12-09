@@ -28,7 +28,7 @@ config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
 hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
-
+hashcat_running_output = empty_to_false(hashcat_running_output)
 router = APIRouter()
 
 @router.post("/prince-generate/")
@@ -236,10 +236,6 @@ async def prince_hashcat(
         if detail is not True:
             return reply_bad_request(message = detail)
         hash_type = str(data_type_translate(hash_type))
-        mask_file = clean_path(mask_file)
-        hash_file = clean_path(hash_file)
-        rule_path = clean_path(rule_path)
-        wordlist_file = clean_path(wordlist_file)
         attack_mode = str(attack_mode_translate(attack_mode))
 
         # Build the Hashcat command

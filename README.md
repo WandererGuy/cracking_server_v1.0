@@ -7,19 +7,30 @@ python src/app/main.py
 in another terminal
 ```bash
 conda activate ...
-python src/app/main_get_status.py
+python src/app/main_status.py
 ```
-
-# if add more file type , remember to add more in
-in extract_hash.py
-find_hashcat_hash_code()
+in another terminal
+```bash
+conda activate ...
+python src/app/main_backend.py
+```
+# if add more file type support ot  hash type support , remember to add more in
+remember : support file type is different to support hash type , support hash type can be more than support file type , like MD5
+--- in src\app\routers\extract_hash.py
+hashcat_hash_code_dict
 find_hash()
 
-in common.property
-ls - variable
-support_file_type - variable 
+--- in src\app\utils\common.py
+ls
+support_file_type
 gen_extract_command()
 
+--- in src\app\routers\backend\crack_file_lock_hash.py
+supprort_file_type
+
+--- in src\app\utils\backend\hashfile.py
+support_hash_type
+hash_type_to_hashcat_hash_code_dict
 # Full Setup Script for Environment
 
 This document provides detailed instructions to set up the environment for your project, including installation of necessary tools, creating virtual environments, and setting up specific software for different operating systems.<br>

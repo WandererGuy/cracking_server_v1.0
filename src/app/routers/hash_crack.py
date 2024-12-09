@@ -2,8 +2,10 @@ from fastapi import Form, APIRouter
 import os 
 import configparser
 import subprocess
-from utils.common import *
+from utils.common import empty_to_none, fix_path, generate_unique_filename, attack_mode_translate, \
+                            data_type_translate, check_value_in_dict, attack_mode_dict, hash_type_dict
 from routers.model import reply_bad_request, reply_success, reply_server_error
+from utils.common import empty_to_false
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
 # logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
 hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
-
+hashcat_running_output = empty_to_false(hashcat_running_output)
 # Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
 crack_collection = os.path.join(static_path, "potfiles", "potfile.txt")
@@ -152,10 +154,6 @@ async def hash_crack(
         if detail is not True:
             return reply_bad_request(message = detail)
         hash_type = str(data_type_translate(hash_type))
-        mask_file = clean_path(mask_file)
-        hash_file = clean_path(hash_file)
-        rule_path = clean_path(rule_path)
-        wordlist_file = clean_path(wordlist_file)
         attack_mode = str(attack_mode_translate(attack_mode))
 
         # Build the Hashcat command
@@ -248,21 +246,16 @@ async def hash_crack(
                 for item in hf_data:
                     if item.strip().strip('\n').strip('\t') == "":
                         miss += 1 
-            if len(cracked_data_lines) < len(hf_data) - miss:
-                message = f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
-                return reply_success(message = message,
-                                    result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
-                                            "url": url_output})
-        message = "Sucessfully crack all hashes"
+            # if len(cracked_data_lines) < len(hf_data) - miss:
+            #     message = f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
+            #     return reply_success(message = message,
+            #                         result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+            #                                 "url": url_output})
+        message = "Sucessfully crack these hashes"
         return reply_success(message = message,
-                            result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+                            result = {"path": fix_path(os.path.join(cracked_hash_result_folder, output_file_name)),
                                       "url": url_output})
 
     except Exception as e:
         return reply_server_error(e)
     
-@router.get("/get-hash-crack-status/")
-async def get_hash_crack_status():
-    with open(hashcat_temp_output, 'r', encoding='utf-8', errors='ignore') as f:
-        data = f.readlines()
-    return data

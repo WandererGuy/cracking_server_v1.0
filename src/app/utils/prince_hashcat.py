@@ -48,8 +48,6 @@ def genPrinceCommandNormal(
     command = [prince_run_file]
 
 
-    prince_wordlist = clean_path(prince_wordlist)
-    output_file = clean_path(output_file)
 
     if prince_wordlist is not None:
         command.append(prince_wordlist)
@@ -127,7 +125,6 @@ def genPrinceCommandHashcat(
 
     # Build the command list based on non-None values
     command = [prince_run_file]
-    prince_wordlist = clean_path(prince_wordlist)
 
     if prince_wordlist is not None:
         command.append(prince_wordlist)

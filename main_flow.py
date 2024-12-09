@@ -45,7 +45,7 @@ def handle_response(response):
 
 if __name__ == "__main__":
 
-    url = "http://192.168.1.3:8010/hash-crack"
+    url = "http://192.168.1.5:8010/hash-crack"
     hash_file = 'C:/Users/Admin/CODE/work/PASSWORD_CRACK/cracking_server_v1.0/src/app/static/extract_hash_results/736915d8-d26f-4c19-a45d-2a03503b74e1.txt'
     wordlist_file = 'C:\\Users\\Admin\\CODE\\work\\PASSWORD_CRACK\\cracking_server_v1.0\\wordlist_samples\\zing_tailieuvn_smallwordlist.txt'
     hashcat_hash_code = '13000'
@@ -58,8 +58,8 @@ if __name__ == "__main__":
                                wordlist_file = wordlist_file,
                                hashcat_hash_code = hashcat_hash_code,
                                attack_mode = attack_mode,
-                                status = status,
-                                status_timer = 5,
+                               status = status,
+                               status_timer = 5,
                                gpu_number = gpu_number)
     res = handle_response(response)
 
@@ -70,8 +70,8 @@ if __name__ == "__main__":
                                hashcat_hash_code = hashcat_hash_code,
                                attack_mode = attack_mode,
                                rule_path = rule_path,
-                                status = status,
-                                status_timer = 5,
+                               status = status,
+                               status_timer = 5,
                                gpu_number = gpu_number)
     res = handle_response(response)
     
