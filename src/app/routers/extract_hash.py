@@ -174,7 +174,7 @@ async def extract_hash(
             message = "Cannot find hashcat hash_code for the hash. Maybe hash extracted wrong or not hash not supported by hashcat"
             return reply_bad_request(message)
         path = f"http://{host_ip}:{port_num}/static/extract_hash_results/{filename}"
-        result =                 {
+        result =  {
                 "path": fix_path(extract_hash_result_file), 
                 "url": path,
                 "hashcat_hash_code": hashcat_hash_code

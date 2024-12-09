@@ -24,6 +24,18 @@ port_num = config['DEFAULT']['port_status_hash_crack']
 production = config['DEFAULT']['production']
 
 from contextlib import asynccontextmanager
+from routers.extract_hash import find_hashcat_hash_code
+
+async def periodic_request():
+    while True:
+        try:
+            with open(backend_temp_step, 'r') as f:
+                content = f.read()
+            write_backend_status(content)
+            print('update backend status')
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        await asyncio.sleep(5)  # Wait for 5 seconds before the next request
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,16 +69,26 @@ async def get_backend_status():
     url = f"http://{host_ip}:{port_num}/static/backend_temp_output.txt"
     return reply_success(message = "Success retrieve backend status", result = url)
 
-async def periodic_request():
-    while True:
-        try:
-            with open(backend_temp_step, 'r') as f:
-                content = f.read()
-            write_backend_status(content)
-            print('update backend status')
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        await asyncio.sleep(5)  # Wait for 5 seconds before the next request
+@app.post("/find_code/")
+async def find_code(
+    hash_file: str = Form(...),
+):
+    collect_res = {}
+    with open(hash_file, 'r') as f:
+        hashes = f.readlines()
+        hashes = list(set(hashes))
+        for index, hash in enumerate(hashes):
+            hash = hash.strip('\n').strip()
+            real_hash = hash
+            hashcat_hash_code = find_hashcat_hash_code(hash_file, real_hash)
+
+            if hashcat_hash_code == None:
+                message = f'Cannot find hashcat hash_code for remaining hashes. \
+                    Maybe hash extracted wrong or not hash not supported by system'
+                return reply_bad_request(message)
+            else:
+                collect_res[real_hash] = hashcat_hash_code
+    with open ()
 
 
 def main():

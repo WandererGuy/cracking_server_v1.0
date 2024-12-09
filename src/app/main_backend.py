@@ -20,7 +20,7 @@ config = configparser.ConfigParser()
 config_path = os.path.join(current_dir, 'config.ini')
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
-port_num = config['DEFAULT']['port_backend'] 
+port_num = config['DEFAULT']['PORT_BACKEND'] 
 production = config['DEFAULT']['production']
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")

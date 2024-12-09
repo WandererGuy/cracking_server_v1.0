@@ -23,7 +23,7 @@ host_ip = config['DEFAULT']['host']
 TARGUESS_PORT_NUM = config['DEFAULT']['TARGUESS_PORT_NUM'] 
 CRACKING_SERVER_PORT_NUM = config['DEFAULT']['CRACKING_SERVER_PORT_NUM'] 
 TARGUESS_TRAIN_RESULT_REFINED_PATH = config['DEFAULT']['TARGUESS_TRAIN_RESULT_REFINED_PATH'] 
-
+PORT_BACKEND = config['DEFAULT']['PORT_BACKEND']
 HASH_CRACK_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/hash-crack/"
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
 TARGUESS_URL_MASKLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-mask-list/"
@@ -56,6 +56,7 @@ async def backend_crack_only_hash(
     other_keywords: str = Form(None),
     ):
     write_backend_step(content = 'VALIDATING USER INPUT')
+    url_cracked_hash = f"http://{host_ip}:{PORT_BACKEND}/static/backend/cracked_hash/"
 
     MAX_MASK_GENERATE_WORDLIST = 1000000000000 # max mask number to create wordlist
     MAX_MASK_GENERATE_MASKLIST = 80 # max mask number to bruteforce
@@ -139,7 +140,7 @@ async def backend_crack_only_hash(
             cracked_hashes[key] = value
     write_to_remaining_hashfile(remaining_hash_file, uncracked_hashes)
     if uncracked_hashes == []:
-        return end_cracking(cracked_hashes, cracked_hash_file)
+        return end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
 
     print ('------------------ ATTEMP WITH TRAWLING WORDLIST (NO RULE) ------------------')
     write_backend_step(content = 'CRACKING HASH WITH TRAWLING WORDLIST (NO RULE)')
@@ -162,7 +163,7 @@ async def backend_crack_only_hash(
             cracked_hashes[key] = value
     write_to_remaining_hashfile(remaining_hash_file, uncracked_hashes)
     if uncracked_hashes == []:
-        return end_cracking(cracked_hashes, cracked_hash_file)
+        return end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
 
 
     print ('------------------ ATTEMP WITH TARGUESS WORDLIST (WITH RULE) ------------------')
@@ -184,7 +185,7 @@ async def backend_crack_only_hash(
             cracked_hashes[key] = value
     write_to_remaining_hashfile(remaining_hash_file, uncracked_hashes)
     if uncracked_hashes == []:
-        return end_cracking(cracked_hashes, cracked_hash_file)
+        return end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
 
 
 
@@ -209,11 +210,15 @@ async def backend_crack_only_hash(
 
     if cracked_hashes != {}:
         if uncracked_hashes == []:
-            return end_cracking(cracked_hashes, cracked_hash_file)
+            return end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
+
+
         else:
-            res = end_cracking(cracked_hashes, cracked_hash_file)
+            res = end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
             res["message"] = 'Successfully cracked these hashes'
             res["result"]["path_remain_hash"] = fix_path(remaining_hash_file)
+            filename = os.path.basename(res["result"]["path_remain_hash"])
+            res["result"]["url_remain_hash"] = f"http://{host_ip}:{PORT_BACKEND}/static/backend/remaining_hash/{filename}"
             return res 
     else:
         return reply_success(message = 'No hash was cracked', result = None)
