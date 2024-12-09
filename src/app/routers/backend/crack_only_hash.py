@@ -5,7 +5,7 @@ from utils.common import fix_path, handle_response
 from routers.model import reply_bad_request, reply_success
 from utils.frontend_validation import is_utf8, target_input_validation
 from utils.common import empty_to_none
-from utils.backend.validate_hashfile import hashfile_validate, support_hash_type
+from utils.backend.validate_hashfile import hashfile_validate, ls_support_hashcat_hash_code
 from utils.backend.targuess import targuess_generate
 from utils.backend.hashcat import use_hashcat, handle_hashcat_response
 from utils.backend.write_hashfile import write_to_remaining_hashfile, end_cracking
@@ -45,7 +45,7 @@ def write_backend_step(content):
 @router.post("/backend-crack-only-hash/")
 async def backend_crack_only_hash(
     hash_file: str = Form(...),
-    hash_type: str = Form(None),
+    hashcat_hash_code: str = Form(None),
     additional_wordlist: str = Form(None),
     full_name: str = Form(None),
     birth: str = Form(None),
@@ -62,9 +62,9 @@ async def backend_crack_only_hash(
     MAX_MASK_GENERATE_MASKLIST = 80 # max mask number to bruteforce
     # can only achieve max mask if all information is provided 
 
-    if hash_type not in support_hash_type: 
-        return reply_bad_request(message = f"Unsupported hash type '{hash_type}' \
-                                 . Support hash type: {support_hash_type}")
+    if hashcat_hash_code not in ls_support_hashcat_hash_code: 
+        return reply_bad_request(message = f"Unsupported hashcat_hash_code '{hashcat_hash_code}' \
+                                 . Support hash type: {ls_support_hashcat_hash_code}")
     
     uncracked_hashes = []
     cracked_hashes = {}
@@ -102,7 +102,7 @@ async def backend_crack_only_hash(
         if not os.path.exists(file_info['additional_wordlist']): 
             return reply_bad_request(message = f"{additional_wordlist} , directory is not found")
     
-    hashcat_hash_code = hashfile_validate(hash_file, hash_type)
+    hashfile_validate(hash_file, hashcat_hash_code)
 
     with open (file_info['hash_file'], 'r', encoding = 'utf-8') as f:
         lines = f.readlines()

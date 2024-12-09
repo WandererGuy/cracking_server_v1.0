@@ -5,3 +5,4 @@ hashcat
 wordlist_samples
 
 /*.rar
+*.pyc
