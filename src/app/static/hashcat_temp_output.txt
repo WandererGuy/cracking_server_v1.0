@@ -1,0 +1,18 @@
+Session..........: 0b6b38a3-15a4-49b0-9edd-d4c9b11ab5a7.restore
+Status...........: Running
+Hash.Mode........: 22100 (BitLocker)
+Hash.Target......: $bitlocker$0$16$a8f23fed61f772d5b4097d76d3d421c0$10...07636a
+Time.Started.....: Tue Dec 10 11:02:08 2024 (2 mins, 17 secs)
+Time.Estimated...: Fri Dec 13 01:37:28 2024 (2 days, 14 hours)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (C:/Users/Admin/CODE/work/PASSWORD_CRACK/TarGuess-I-main/static/generated_target_wordlist/c59be200-6b6e-44f4-9b62-2b14768fe332.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#2.........:       64 H/s (15.87ms) @ Accel:2 Loops:4096 Thr:128 Vec:1
+Recovered........: 0/1 (0.00%) Digests (total), 0/1 (0.00%) Digests (new)
+Progress.........: 8759/14416449 (0.06%)
+Rejected.........: 55/8759 (0.63%)
+Restore.Point....: 8759/14416449 (0.06%)
+Restore.Sub.#2...: Salt:0 Amplifier:0-1 Iteration:94208-98304
+Candidate.Engine.: Device Generator
+Candidates.#2....: 262044 -> 72682001
+Hardware.Mon.#2..: Temp: 52c Fan: 30% Util: 99% Core:1935MHz Mem:7300MHz Bus:16

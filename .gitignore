@@ -1,8 +1,11 @@
 env
-src/app/static
 samples/disk_E.image.001
 hashcat
 wordlist_samples
 
 /*.rar
 *.pyc
+src/app/static/*
+!src/app/static/backend_temp_output.txt
+!src/app/static/backend_temp_step.txt
+!src/app/static/hashcat_temp_output.txt
