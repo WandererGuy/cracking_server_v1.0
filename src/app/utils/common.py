@@ -130,7 +130,7 @@ def generate_unique_filename(UPLOAD_FOLDER, extension="txt"):
 def check_result_available(file):
     with open (file, 'r') as f_:
         f = f_.read()
-        if 'Status...........: Exhausted' in f:
+        if 'Exhausted' in f:
             return False
         else:
             return True

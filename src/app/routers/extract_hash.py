@@ -68,7 +68,7 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
             for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:
                 if error in line:
                     return False, error
-            if 'Status...........: Exhausted' in line:
+            if 'Exhausted' in line:
                     return True, None
     return False, 'first recorded error'
 def find_hashcat_hash_code(extract_hash_result_file, real_hash):

@@ -123,6 +123,7 @@ async def backend_crack_only_hash(
                             targuess_url = TARGUESS_URL_WORDLIST, 
                             target_info = target_info, 
                             max_mask_generate = MAX_MASK_GENERATE_WORDLIST)
+    print (res.json())
     json_res = handle_response(res)
     print ('------------------ ATTEMP WITH TARGUESS WORDLIST (NO RULE) ------------------')
     write_backend_step(content = 'CRACKING HASH WITH TARGET WORDLIST (NO RULE)')
@@ -147,9 +148,8 @@ async def backend_crack_only_hash(
     print ('------------------ ATTEMP WITH TRAWLING WORDLIST (NO RULE) ------------------')
     write_backend_step(content = 'CRACKING HASH WITH TRAWLING WORDLIST (NO RULE)')
     # trawling wordlist < 1GB 
-    print 
     WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(),'wordlist_samples','zing_tailieuvn_smallwordlist.txt')
-    WORDLIST_FILE_TRAWLING = r'C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\wordlist\fake.txt'
+    WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(), 'samples', 'wordlist','fake.txt')
 
     hashcat_material = {
         "hash_file": remaining_hash_file,
