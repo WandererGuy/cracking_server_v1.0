@@ -4,6 +4,8 @@ import sys
 import requests
 import os 
 from utils.common import fix_path
+import uuid
+
 hash_type_to_hashcat_hash_code_dict = {
     "BitLocker": ['22100'],
     "7-Zip": ['11600'],
@@ -27,12 +29,12 @@ BONUS_MESSAGE = f'Also, please notice these 4 rules for your hash file: \
                 
 
 
-def hash_validate(hash, hashcat_hash_code):
-    value, error = test_hashcat_hash_code(hash, hashcat_hash_code)
+def hash_validate(path_0, hashcat_hash_code):
+    value, error = test_hashcat_hash_code(path_0, hashcat_hash_code)
     if  value != False: # success
         pass
     else:
-        message = f'given hash \'{hash}\' have error \'{error}\' for hashcat hash code \'{hashcat_hash_code}\'. \
+        message = f'Invalid hash in hash file, shown in file\'{fix_path(path_0)}\' have error \'{error}\' for hashcat hash code \'{hashcat_hash_code}\'. \
                     step1: Please find correct hashcat hash code for hash through other tools. If fail, please fix the hash according to error OR remove the hash from file \
                     For fixing error, you can find example hash example for each hash type in pdf file: {document_path} to compare your hash \
                     Asking yourself if the hash need to be same length/same pattern to fix the error. \
@@ -42,8 +44,11 @@ def hash_validate(hash, hashcat_hash_code):
 
 
 
-def hashfile_validate(hash_file, hashcat_hash_code):
+def hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder):
     empty_file = True # make sure hash file not empty
+    filename_0 = str(uuid.uuid4()) + '.txt'
+    path_0 = os.path.join(hash_dump_folder, filename_0)
+
     with open(hash_file, 'r') as f:
         hashes = f.readlines()
         for index, hash in enumerate(hashes):
@@ -51,7 +56,9 @@ def hashfile_validate(hash_file, hashcat_hash_code):
             if hash == '':
                 continue
             empty_file = False
-            hash_validate(hash, hashcat_hash_code)
+            with open(path_0, 'w') as f_0:
+                f_0.write(hash)
+            hash_validate(path_0, hashcat_hash_code)
             # if index == 0:
             #     fix_hashcat_hash_code = hashcat_hash_code
             # else:

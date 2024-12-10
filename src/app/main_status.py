@@ -10,6 +10,7 @@ from routers.model import MyHTTPException, my_exception_handler
 import requests 
 import asyncio
 import uuid 
+from utils.common import fix_path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 static_path = os.path.join(current_dir,'static')
 hashcat_hash_code_folder = os.path.join(static_path,'backend','hashcat_hash_code')
@@ -57,10 +58,22 @@ def write_backend_status(content):
             f.write(content)
         else: 
             f.write(content)
-            f.write('\n\n')
+            f.write('\n')
             with open(hashcat_temp_output, 'r', encoding='utf-8') as f_hc:
                 progress = f_hc.read() 
-            f.write(progress)
+            with open(hashcat_temp_output, 'r', encoding='utf-8') as f_hc:
+                lines = f_hc.readlines()
+                for line in lines:
+                    if 'progress' in line.lower():
+                        progress_line = line
+                        f.write(progress_line)
+                        f.write('\n')
+                    if 'speed' in line.lower():
+                        speed_line = line
+                        f.write(speed_line)
+                f.write('\n\n')
+                f.write(progress)
+
 
 @app.get("/get-hash-crack-status/")
 async def get_hash_crack_status():
@@ -104,7 +117,7 @@ async def find_code(
             f.write(f'Hash: {key}\n')
             f.write(f'Hashcat Hash Code: {value}\n\n\n')
     
-    return reply_success(message = "Success", result = {"url":url, "path":path})
+    return reply_success(message = "Success", result = {"url":url, "path":fix_path(path)})
 
 def main():
     print ('INITIALIZING FASTAPI SERVER')

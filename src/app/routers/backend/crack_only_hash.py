@@ -31,6 +31,8 @@ TARGUESS_URL_MASKLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-m
 
 router = APIRouter()
 static_path = os.path.join(parent_dir,'static')
+hash_dump_folder = os.path.join(static_path,'backend','hash_dump')
+
 backend_temp_output = os.path.join(static_path,'backend_temp_output.txt')
 hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 backend_temp_step = os.path.join(static_path,'backend_temp_step.txt')
@@ -102,7 +104,7 @@ async def backend_crack_only_hash(
         if not os.path.exists(file_info['additional_wordlist']): 
             return reply_bad_request(message = f"{additional_wordlist} , directory is not found")
     
-    hashfile_validate(hash_file, hashcat_hash_code)
+    hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder)
 
     with open (file_info['hash_file'], 'r', encoding = 'utf-8') as f:
         lines = f.readlines()
@@ -145,6 +147,7 @@ async def backend_crack_only_hash(
     print ('------------------ ATTEMP WITH TRAWLING WORDLIST (NO RULE) ------------------')
     write_backend_step(content = 'CRACKING HASH WITH TRAWLING WORDLIST (NO RULE)')
     # trawling wordlist < 1GB 
+    print 
     WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(),'wordlist_samples','zing_tailieuvn_smallwordlist.txt')
     WORDLIST_FILE_TRAWLING = r'C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\wordlist\fake.txt'
 

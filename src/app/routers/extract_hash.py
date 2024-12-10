@@ -28,7 +28,8 @@ extract_hash_result_folder = os.path.join(static_path, "extract_hash_results")
 
 router = APIRouter()
 running_dir = os.getcwd()
-fake_wordlist_path = os.path.join(running_dir, 'samples','wordlist','fake.txt')
+fake_wordlist_path = os.path.join(running_dir, 'samples','wordlist','fake_test_hashcat_code.txt')
+fake_potfile_path = os.path.join(running_dir, 'samples','wordlist','fake_test_potfile.pot')
 temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
 hashcat_hash_code_dict = {
@@ -49,6 +50,8 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
     command.append('0')
     command.append('-m')
     command.append(hashcat_hash_code)
+    command.append('--potfile-path')
+    command.append(fake_potfile_path)
     cm = " ".join(command)
     print ('fake test hashcat_hash_code: ')
     print (cm)
@@ -65,16 +68,23 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
             for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:
                 if error in line:
                     return False, error
-    return True, None
-
+            if 'Status...........: Exhausted' in line:
+                    return True, None
+    return False, 'first recorded error'
 def find_hashcat_hash_code(extract_hash_result_file, real_hash):
+    '''
+    extract_hash_result_file : hash file have 1 hash 
+    real_hash : hash in the hash file
+    why not pass hash directly?  because hash can be too long and cannot be passed directly
+    so hash file have better control
+    '''
     for key, value in hashcat_hash_code_dict.items():
         if key in real_hash:
             for hashcat_hash_code in value:
                 valid_code, error = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
                 if valid_code is False: continue
                 else: return hashcat_hash_code
-            break # since unique type only found once 
+            # break # since unique type only found once 
     return None
 
 def find_hash(file_type, stdout):
