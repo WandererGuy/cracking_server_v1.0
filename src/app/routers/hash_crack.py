@@ -32,7 +32,7 @@ hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
 
 TEMP_LIMIT = 85
 ABORT_SIGNAL = False
-    
+COOLDOWN_TIME_GPU = 12
 def create_hashcat_command_general(input: dict):
     command = ["hashcat"]
     check_dict = {
@@ -282,8 +282,8 @@ async def hash_crack(
         exhausted_flag = False
         while RESTORE: # until no more restore due to heat 
                 if first_flag == False:
-                        print ('cooling gpu for 12 seconds')
-                        time.sleep(12) # 
+                        print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
+                        time.sleep(COOLDOWN_TIME_GPU) # 
                         print ('------------- REBORN SESSION --------------')
                         command = [hashcat_path, '--session', session_name, '--restore']
                 else:
