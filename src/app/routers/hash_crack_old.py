@@ -1,6 +1,3 @@
-import subprocess
-import threading
-import time
 from fastapi import Form, APIRouter
 import os 
 import configparser
@@ -9,7 +6,10 @@ from utils.common import empty_to_none, fix_path, generate_unique_filename, atta
                             data_type_translate, check_value_in_dict, attack_mode_dict, hash_type_dict
 from routers.model import reply_bad_request, reply_success, reply_server_error
 from utils.common import empty_to_false
-import uuid
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(detail)s', filename='fastapi.log', filemode='w')
+# logger = logging.getLogger(__name__)
+
+# Get the directory where the current script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 config_path = os.path.join(parent_dir,'config.ini')
@@ -24,16 +24,15 @@ hashcat_running_output = empty_to_false(hashcat_running_output)
 # Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
 crack_collection = os.path.join(static_path, "potfiles", "potfile.txt")
-session_folder = os.path.join(static_path, "session")
+session_folder = os.path.join(parent_dir, "session")
 cracked_hash_result_folder = os.path.join(static_path, 'cracked_hash')
 potfile_folder = os.path.join(static_path, "potfiles")
 hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
-hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
 
-TEMP_LIMIT = 85
-ABORT_SIGNAL = False
+
     
 def create_hashcat_command_general(input: dict):
+
     command = ["hashcat"]
     check_dict = {
         "hash_file": input.get("hash_file", None),
@@ -59,7 +58,7 @@ def create_hashcat_command_general(input: dict):
             "hash_type": '-m',
             "attack_mode": '-a',
             "rule_path": '-r',
-            # "session_name": '--session',
+            "session_name": '--session',
             "output_file": '-o',
             "runtime": '--runtime',
             "potfile_path": "--potfile-path",
@@ -79,77 +78,8 @@ def create_hashcat_command_general(input: dict):
             if key not in non_value_ls :
                 if key != "status": # since hashcat enable timer by not having value for status
                     command.append(value)
-    # command.append('--hwmon-temp-abort=85')
+
     return command
-
-# Define your condition checker
-def check_condition(line):
-    """
-    Replace this function's logic with your actual condition.
-    For example, terminate when a certain number of hashes are cracked.
-    """
-    # Example condition: terminate when "Cracked: 100" appears in output
-    if "Cracked: 100" in line:
-        return True
-    return False
-
-# Define the termination handler
-def terminate_hashcat(process):
-    """
-    Sends the 'q' command to Hashcat's stdin to terminate it.
-    """
-    
-    try:
-        if process.poll() is None:  # Check if process is still running
-            print("Condition met. Sending 'q' to terminate Hashcat...")
-            process.stdin.write('q\n')  # Send 'q' followed by newline
-            process.stdin.flush()        # Ensure the command is sent immediately
-            return 
-    except Exception as e:
-        print(f"Error sending 'q': {e}")
-    
-
-
-def check_temp(line):
-    for x in range(TEMP_LIMIT, TEMP_LIMIT+10): # make sure dont miss a temp once over temp limit 
-        x = str(x)  
-        if f'Temp: {x}c' in line:
-            return True
-    else: 
-        return False
-# Define the output reader
-def read_output(process, on_condition_met):
-    """
-    Reads the subprocess's stdout line by line.
-    Calls on_condition_met() when the condition is satisfied.
-    """
-    tmp = []
-    flag = False
-    for line in process.stdout:
-        # Process the output as per your original logic
-        if "Session..........: " in line:
-            tmp = []
-            flag = True
-        if "Hardware.Mon." in line:
-            tmp.append(line)
-            flag = False
-            with open(hashcat_temp_output, 'w', encoding='utf-8', errors='ignore') as f:
-                for tmp_line in tmp:
-                    f.write(tmp_line)
-        if flag:
-            tmp.append(line)
-        if hashcat_running_output:
-            print(line, end='')  # Print the output in real-time
-
-        # Check if the line meets the condition
-        if check_condition(line):
-            on_condition_met(process)
-            break  # Exit the loop after condition is met
-
-    # Continue reading remaining output if necessary
-    for line in process.stdout:
-        if hashcat_running_output:
-            print(line, end='')
 
 
 router = APIRouter()
@@ -168,7 +98,6 @@ async def hash_crack(
     status_timer: str = Form(None),
     gpu_number: str = Form(None)
 ):
-    global ABORT_SIGNAL
     hash_type = hashcat_hash_code
     mask_file = empty_to_none(mask_file)
     wordlist_file = empty_to_none(wordlist_file)
@@ -196,8 +125,10 @@ async def hash_crack(
     if attack_mode == None:
         message = "please provide attack_mode"
         return reply_bad_request (message)
+
     potfile_name = generate_unique_filename(potfile_folder , extension="txt")
     potfile_path = os.path.join(potfile_folder, potfile_name)
+    session_name = generate_unique_filename(session_folder , extension="restore")
     output_file_name = generate_unique_filename(cracked_hash_result_folder , extension="txt")
     output_file = os.path.join(cracked_hash_result_folder, output_file_name)
     """
@@ -232,7 +163,7 @@ async def hash_crack(
         "hash_type": hash_type,
         "attack_mode": attack_mode,
         "rule_path": rule_path,
-        # "session_name": session_name,
+        "session_name": session_name,
         "restore": restore,
         "output_file": output_file,
         "runtime": runtime,
@@ -244,74 +175,36 @@ async def hash_crack(
     }
 
         command = create_hashcat_command_general(hashcat_input_dict)
-        # Start the process with Popen for real-time output
-        if hashcat_running_output: text = True
-        else: text = False
-
-        # while RESTORE_HASHCAT:
-            # Start the subprocess with stdin enabled
-            # process = subprocess.Popen(
-            #     command,
-            #     cwd="hashcat",
-            #     stdout=subprocess.PIPE,
-            #     stderr=subprocess.PIPE,
-            #     stdin=subprocess.PIPE,  # Enable stdin to send commands
-            #     text=text,              # Use text mode for easier string handling
-            #     shell=True,            # Use shell=False for security
-            #     encoding='utf-8'
-            # )
-            # output_thread = threading.Thread(target=read_output, args=(process, terminate_hashcat))
-            # output_thread.start()
-            # output_thread.join()
-
-            # Wait for the process to terminate and get stderr
-        command[0] = hashcat_path
-        session_name = str(uuid.uuid4())
-        # session_path = os.path.join(session_folder, session_name)
-        command.append('--session')
-        command.append(session_name)
-        # command.append(--restore)
         cm = " ".join(command)
         print ('-------------------') 
         print (command)
         print('')
         print (cm)           
-
-        RESTORE = True
-        first_flag = True
-        exhausted_flag = False
-        while RESTORE: # until no more restore due to heat 
-                if first_flag == False:
-                        print ('cooling gpu for 12 seconds')
-                        time.sleep(12) # 
-                        print ('------------- REBORN SESSION --------------')
-                        command = [hashcat_path, '--session', session_name, '--restore']
-                else:
-                        first_flag = False
-                        RESTORE = False
-                process = subprocess.Popen(command, 
+        # process = subprocess.run(command,
+        #                         capture_output=True, 
+        #                         cwd="hashcat",
+        #                         shell=True,
+        #                         text=True, 
+        #                         encoding = 'utf-8')
+        # # wrong ccommand will return nothing 
+        # if process.stderr:
+        #     if "No hashes loaded" in process.stderr:
+        #         message = "No hash found in file OR hash_type is not same type with loaded hash"
+        #         return reply_bad_request(message = message)
+        #     return reply_bad_request(message = process.stderr)
+        # Start the process with Popen for real-time output
+        if hashcat_running_output: text = True
+        else: text = False
+        with subprocess.Popen(command, 
                             cwd="hashcat", 
                             stdout=subprocess.PIPE, 
                             stderr=subprocess.PIPE, 
-                            stdin=subprocess.PIPE,
                             text=text, 
-                            shell=False,
-                            encoding='utf-8'
-                            )
+                            shell=True,
+                            encoding='utf-8') as process:
+                # Read and print output line by line as it comes
                 flag = False
                 for line in process.stdout:
-                    # in case it is still hot,  
-                    # but hashcat done, no need to restore anymore 
-                    if ": Exhausted" in line: 
-                        RESTORE = False # escape hashcat , no more reborn 
-                        exhausted_flag = True
-                    elif ": Cracked" in line: 
-                        RESTORE = False # escape hashcat , no more reborn
-                    if ABORT_SIGNAL == False:
-                        if 'Temp:' in line and 'Fan' in line:
-                            last_temp = line.split('Fan')[0].split('Temp: ')[1]
-                            ABORT_SIGNAL = check_temp(line)
-                            print ('ABORT_SIGNAL: ', ABORT_SIGNAL)
                     if "Session..........: " in line:
                         tmp = []
                         flag = True
@@ -324,40 +217,27 @@ async def hash_crack(
                     if flag:
                         tmp.append(line)
                     if hashcat_running_output: print(line, end='')  # Print the output in real-time
-                    if ABORT_SIGNAL == True and ' [q]uit' in line: # kill after take the last restore 
-                        print('OVERHEAT...ABORTING PROCESS..............')
-                        print ('last temp recorded: ', last_temp)
-                        process.terminate()
-                        RESTORE = True # if die due to heat , reborn
-                        ABORT_SIGNAL = False
-                        try:
-                            process.wait(timeout=5)
-                        except subprocess.TimeoutExpired:
-                            process.kill() 
-                            
-                        break  # Exit the loop after terminating
+            # Optionally, handle stderr (error output)
+                _, stderr = process.communicate()
+                if stderr:
+                    if "No hashes loaded" in stderr:
+                        message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
+                        return reply_bad_request(message = message)
+                    return reply_bad_request(message = stderr)
 
-        # terminate_hashcat(process)
-        _, stderr = process.communicate()
 
-        # Handle stderr if any
-        if stderr:
-            if "No hashes loaded" in stderr:
-                message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
-                reply_bad_request(message=message)
-            else:
-                reply_bad_request(message=stderr)
+
 
         url_output = f"http://{host_ip}:{port_num}/static/cracked_hash/{output_file_name}"
         ### check for result 
         output_file_path = os.path.join(cracked_hash_result_folder, output_file)
-        # if not os.path.exists(output_file_path):
-        if exhausted_flag:
+        if not os.path.exists(output_file_path):
             message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
             return reply_success(message = message,
                                         result = None)
-        if not os.path.exists(output_file_path):
-            return reply_server_error('server suddenly cancel the cracking process')
+                
+        with open (output_file_path, 'r') as f:
+            cracked_data_lines = f.readlines()
         with open (output_file_path, 'r') as f: 
             with open (hash_file, 'r') as hf:
                 hf_data = hf.readlines()
@@ -365,10 +245,16 @@ async def hash_crack(
                 for item in hf_data:
                     if item.strip().strip('\n').strip('\t') == "":
                         miss += 1 
+            # if len(cracked_data_lines) < len(hf_data) - miss:
+            #     message = f"cracked {len(cracked_data_lines)} over {len(hf_data)} hashes"
+            #     return reply_success(message = message,
+            #                         result = {"path": os.path.join(cracked_hash_result_folder, output_file_name),
+            #                                 "url": url_output})
         message = "Sucessfully crack these hashes"
         return reply_success(message = message,
                             result = {"path": fix_path(os.path.join(cracked_hash_result_folder, output_file_name)),
-                                        "url": url_output})
+                                      "url": url_output})
 
     except Exception as e:
         return reply_server_error(e)
+    

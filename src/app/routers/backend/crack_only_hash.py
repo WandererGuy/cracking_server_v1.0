@@ -133,7 +133,7 @@ async def backend_crack_only_hash(
         "wordlist_file": WORDLIST_FILE_TARGUESS,
         "hashcat_hash_code": hashcat_hash_code,
         "rule_path": '',
-        "gpu_number": 2
+        "gpu_number": 1 # for now consider 1 is fastest 
     }
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict = handle_hashcat_response(res)
