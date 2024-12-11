@@ -21,6 +21,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
+terminal_crack_warmup_time = int(config['DEFAULT']['terminal_crack_warmup_time'])
 # Construct the path to config.ini
 static_path = os.path.join(parent_dir,'static')
 
@@ -41,7 +42,7 @@ hashcat_hash_code_dict = {
     "$7z$": ['11600']
 }
 
-
+import time 
 def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
     command = ["hashcat"]    
     command.append(extract_hash_result_file)
@@ -63,6 +64,7 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
                         shell=True,
                         encoding='utf-8') as process:
         # Read and print output line by line as it comes
+        time.sleep(terminal_crack_warmup_time)
         for line in process.stdout:
             print(line, end='')  # Print the output in real-time
             for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:

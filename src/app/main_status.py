@@ -31,48 +31,12 @@ production = config['DEFAULT']['production']
 from contextlib import asynccontextmanager
 from routers.extract_hash import find_hashcat_hash_code
 
-async def periodic_request():
-    while True:
-        try:
-            with open(backend_temp_step, 'r') as f:
-                content = f.read()
-            write_backend_status(content)
-            print('update backend status')
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        await asyncio.sleep(5)  # Wait for 5 seconds before the next request
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    asyncio.create_task(periodic_request()) # start up action 
-    print("Started periodic HTTP requests every 5 seconds.")
-    yield
-    pass # shutdown action 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 app.add_exception_handler(MyHTTPException, my_exception_handler)
 
-def write_backend_status(content):
-    with open(backend_temp_output, 'w', encoding='utf-8') as f:
-        if 'generating' in content.lower() or 'validating' in content.lower():
-            f.write(content)
-        else: 
-            f.write(content)
-            f.write('\n')
-            with open(hashcat_temp_output, 'r', encoding='utf-8') as f_hc:
-                progress = f_hc.read() 
-            with open(hashcat_temp_output, 'r', encoding='utf-8') as f_hc:
-                lines = f_hc.readlines()
-                for line in lines:
-                    if 'progress' in line.lower():
-                        progress_line = line
-                        f.write(progress_line)
-                        f.write('\n')
-                    if 'speed' in line.lower():
-                        speed_line = line
-                        f.write(speed_line)
-                f.write('\n\n')
-                f.write(progress)
+
 
 
 @app.get("/get-hash-crack-status/")
