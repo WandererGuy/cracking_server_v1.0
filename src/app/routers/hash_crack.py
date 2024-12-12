@@ -19,6 +19,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port'] 
+terminal_crack_warmup_time = int(config['DEFAULT']['terminal_crack_warmup_time'])
 hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
 hashcat_running_output = empty_to_false(hashcat_running_output)
 # Construct the path to config.ini
@@ -298,6 +299,7 @@ async def hash_crack(
                             shell=False,
                             encoding='utf-8'
                             )
+                time.sleep(terminal_crack_warmup_time) # for restart slow terminal 
                 flag = False
                 for line in process.stdout:
                     # in case it is still hot,  
