@@ -3,7 +3,11 @@ import os
 import logging
 import configparser
 import subprocess
-from utils.common import *
+import time 
+from routers.extract_hash import kill_process
+from utils.common import empty_to_none, fix_path, generate_unique_filename, attack_mode_translate, \
+                            data_type_translate, check_value_in_dict, check_temp,\
+                            attack_mode_dict, hash_type_dict
 from utils.prince_hashcat import *
 from routers.model import reply_bad_request, reply_success, reply_server_error
 from routers.hash_crack import create_hashcat_command_general
@@ -29,7 +33,12 @@ host_ip = config['DEFAULT']['host']
 port_num = config['DEFAULT']['port'] 
 hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
 hashcat_running_output = empty_to_false(hashcat_running_output)
+terminal_crack_warmup_time = int(config['DEFAULT']['terminal_crack_warmup_time'])
+
 router = APIRouter()
+TEMP_LIMIT = 85
+ABORT_SIGNAL = False
+COOLDOWN_TIME_GPU = 12
 
 @router.post("/prince-generate/")
 async def prince_generate(    
@@ -202,7 +211,6 @@ async def prince_hashcat(
     
     potfile_name = generate_unique_filename(potfile_folder , extension="txt")
     potfile_path = os.path.join(potfile_folder, potfile_name)
-    session_name = generate_unique_filename(session_folder , extension="restore")
     output_file_name = generate_unique_filename(cracked_hash_result_folder , extension="txt")
     output_file = os.path.join(cracked_hash_result_folder, output_file_name)
 
@@ -246,7 +254,7 @@ async def prince_hashcat(
         "hash_type": hash_type,
         "attack_mode": attack_mode,
         "rule_path": rule_path,
-        "session_name": session_name,
+        # "session_name": session_name,
         "restore": restore,
         "output_file": output_file,
         "runtime": runtime,
@@ -256,6 +264,8 @@ async def prince_hashcat(
         "status_timer": status_timer,
         "gpu_number": gpu_number
     }
+        if hashcat_running_output: text = True
+        else: text = False
 
         command = create_hashcat_command_general(hashcat_input_dict)
         cm = " ".join(command)
@@ -263,34 +273,57 @@ async def prince_hashcat(
         print (command)
         print('')
         print (cm)   
+        session_name = str(uuid.uuid4())
+        command.append('--session')
+        command.append(session_name)
 
         ####### PRINCE PIPE #######
         prince_command.append('|')
         full_command = prince_command
         for i in command:
             full_command.append(i)
-        cm = " ".join(command)
+        cm = " ".join(full_command)
         print ('-------------------') 
-        print (command)
+        print (full_command)
         print('')
         print (cm)   
-
-        ##############
-
+        RESTORE = True
+        first_flag = True
+        exhausted_flag = False
 
         # piping '|'require shell feature so shell = True 
         if hashcat_running_output: text = True
         else: text = False
-        with subprocess.Popen(full_command, 
-                            cwd="hashcat", 
-                            stdout=subprocess.PIPE, 
-                            stderr=subprocess.PIPE, 
-                            text=text, 
-                            shell=True,
-                            encoding='utf-8') as process:
+        while RESTORE: # until no more restore due to heat 
+                if first_flag == False:
+                        print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
+                        time.sleep(COOLDOWN_TIME_GPU) # 
+                        print ('------------- REBORN SESSION --------------')
+                        command = ["hashcat", '--session', session_name, '--restore']
+                else:
+                        first_flag = False
+                        RESTORE = False
+                process = subprocess.Popen(full_command, 
+                                    cwd="hashcat", 
+                                    stdout=subprocess.PIPE, 
+                                    stderr=subprocess.PIPE, 
+                                    text=text, 
+                                    shell=True,
+                                    encoding='utf-8') 
                 # Read and print output line by line as it comes
+                time.sleep(terminal_crack_warmup_time)
                 flag = False
                 for line in process.stdout:
+                    if ": Exhausted" in line: 
+                        RESTORE = False # escape hashcat , no more reborn 
+                        exhausted_flag = True
+                    elif ": Cracked" in line: 
+                        RESTORE = False # escape hashcat , no more reborn
+                    if ABORT_SIGNAL == False:
+                        if 'Temp:' in line and 'Fan' in line:
+                            last_temp = line.split('Fan')[0].split('Temp: ')[1]
+                            ABORT_SIGNAL = check_temp(line, TEMP_LIMIT)
+                            print ('ABORT_SIGNAL: ', ABORT_SIGNAL)
                     if "Session..........: " in line:
                         tmp = []
                         flag = True
@@ -303,13 +336,21 @@ async def prince_hashcat(
                     if flag:
                         tmp.append(line)
                     if hashcat_running_output: print(line, end='')  # Print the output in real-time
-            # Optionally, handle stderr (error output)
-                _, stderr = process.communicate()
-                if stderr:
-                    if "No hashes loaded" in stderr:
-                        message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
-                        return reply_bad_request(message = message)
-                    return reply_bad_request(message = stderr)
+                    if ABORT_SIGNAL == True and ' [q]uit' in line: # kill after take the last restore 
+                        print('OVERHEAT...ABORTING PROCESS..............')
+                        print ('last temp recorded: ', last_temp)
+                        RESTORE = True # if die due to heat , reborn
+                        ABORT_SIGNAL = False
+                        kill_process(process)     
+                        break  # Exit the loop after terminating
+
+        # Optionally, handle stderr (error output)
+        _, stderr = process.communicate()
+        if stderr:
+            if "No hashes loaded" in stderr:
+                message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
+                return reply_bad_request(message = message)
+            return reply_bad_request(message = stderr)
 
 
 

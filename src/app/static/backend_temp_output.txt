@@ -1,24 +1,24 @@
 CRACKING HASH WITH TARGET WORDLIST (NO RULE)
-Speed.#2.........:      422 H/s (0.36ms) @ Accel:16 Loops:128 Thr:256 Vec:1
-Progress.........: 46/46 (100.00%)
+Speed.#2.........:       63 H/s (15.82ms) @ Accel:2 Loops:4096 Thr:128 Vec:1
+Progress.........: 60727/14416449 (0.42%)
 
 
 
-Session..........: e31201ff-5818-4524-b3e8-fcecbe5edd8b
-Status...........: Cracked
-Hash.Mode........: 13000 (RAR5)
-Hash.Target......: $rar5$16$c7a7b4bf25d7f9d99f5d6ac95df15f3b$15$0b5414...478cd8
-Time.Started.....: Wed Dec 11 14:04:52 2024 (1 sec)
-Time.Estimated...: Wed Dec 11 14:04:53 2024 (0 secs)
+Session..........: 88be3f86-7b1c-4647-a0d4-4d78ffa748d0
+Status...........: Running
+Hash.Mode........: 22100 (BitLocker)
+Hash.Target......: $bitlocker$0$16$a8f23fed61f772d5b4097d76d3d421c0$10...07636a
+Time.Started.....: Thu Dec 12 13:36:58 2024 (16 mins, 9 secs)
+Time.Estimated...: Sun Dec 15 05:18:58 2024 (2 days, 15 hours)
 Kernel.Feature...: Pure Kernel
-Guess.Base.......: File (C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\wordlist\fake.txt)
+Guess.Base.......: File (C:/Users/Admin/CODE/work/PASSWORD_CRACK/TarGuess-I-main/static/generated_target_wordlist/347fbfe8-ad79-4496-9e7a-dc839902f5bc.txt)
 Guess.Queue......: 1/1 (100.00%)
-Speed.#2.........:      422 H/s (0.36ms) @ Accel:16 Loops:128 Thr:256 Vec:1
-Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
-Progress.........: 46/46 (100.00%)
-Rejected.........: 0/46 (0.00%)
-Restore.Point....: 0/46 (0.00%)
-Restore.Sub.#2...: Salt:0 Amplifier:0-1 Iteration:32768-32799
+Speed.#2.........:       63 H/s (15.82ms) @ Accel:2 Loops:4096 Thr:128 Vec:1
+Recovered........: 0/1 (0.00%) Digests (total), 0/1 (0.00%) Digests (new)
+Progress.........: 60727/14416449 (0.42%)
+Rejected.........: 55/60727 (0.09%)
+Restore.Point....: 60727/14416449 (0.42%)
+Restore.Sub.#2...: Salt:0 Amplifier:0-1 Iteration:851968-856064
 Candidate.Engine.: Device Generator
-Candidates.#2....: 0906706768 -> emyeuanhdung
-Hardware.Mon.#2..: Temp: 52c Fan:  0% Util: 93% Core:1942MHz Mem:7300MHz Bus:16
+Candidates.#2....: 26478; -> duongducmanh11!
+Hardware.Mon.#2..: Temp: 45c Fan: 30% Util: 99% Core:1927MHz Mem:7300MHz Bus:16

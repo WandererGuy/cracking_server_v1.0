@@ -6,10 +6,12 @@ import os
 import configparser
 import subprocess
 from utils.common import empty_to_none, fix_path, generate_unique_filename, attack_mode_translate, \
-                            data_type_translate, check_value_in_dict, attack_mode_dict, hash_type_dict
+                            data_type_translate, check_value_in_dict, check_temp,\
+                            attack_mode_dict, hash_type_dict
 from routers.model import reply_bad_request, reply_success, reply_server_error
 from utils.common import empty_to_false
 import uuid
+from routers.extract_hash import kill_process
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 config_path = os.path.join(parent_dir,'config.ini')
@@ -83,74 +85,6 @@ def create_hashcat_command_general(input: dict):
     # command.append('--hwmon-temp-abort=85')
     return command
 
-# Define your condition checker
-def check_condition(line):
-    """
-    Replace this function's logic with your actual condition.
-    For example, terminate when a certain number of hashes are cracked.
-    """
-    # Example condition: terminate when "Cracked: 100" appears in output
-    if "Cracked: 100" in line:
-        return True
-    return False
-
-# Define the termination handler
-def terminate_hashcat(process):
-    """
-    Sends the 'q' command to Hashcat's stdin to terminate it.
-    """
-    
-    try:
-        if process.poll() is None:  # Check if process is still running
-            print("Condition met. Sending 'q' to terminate Hashcat...")
-            process.stdin.write('q\n')  # Send 'q' followed by newline
-            process.stdin.flush()        # Ensure the command is sent immediately
-            return 
-    except Exception as e:
-        print(f"Error sending 'q': {e}")
-    
-
-
-def check_temp(line):
-    for x in range(TEMP_LIMIT, TEMP_LIMIT+10): # make sure dont miss a temp once over temp limit 
-        x = str(x)  
-        if f'Temp: {x}c' in line:
-            return True
-    else: 
-        return False
-# Define the output reader
-def read_output(process, on_condition_met):
-    """
-    Reads the subprocess's stdout line by line.
-    Calls on_condition_met() when the condition is satisfied.
-    """
-    tmp = []
-    flag = False
-    for line in process.stdout:
-        # Process the output as per your original logic
-        if "Session..........: " in line:
-            tmp = []
-            flag = True
-        if "Hardware.Mon." in line:
-            tmp.append(line)
-            flag = False
-            with open(hashcat_temp_output, 'w', encoding='utf-8', errors='ignore') as f:
-                for tmp_line in tmp:
-                    f.write(tmp_line)
-        if flag:
-            tmp.append(line)
-        if hashcat_running_output:
-            print(line, end='')  # Print the output in real-time
-
-        # Check if the line meets the condition
-        if check_condition(line):
-            on_condition_met(process)
-            break  # Exit the loop after condition is met
-
-    # Continue reading remaining output if necessary
-    for line in process.stdout:
-        if hashcat_running_output:
-            print(line, end='')
 
 
 router = APIRouter()
@@ -249,29 +183,9 @@ async def hash_crack(
         if hashcat_running_output: text = True
         else: text = False
 
-        # while RESTORE_HASHCAT:
-            # Start the subprocess with stdin enabled
-            # process = subprocess.Popen(
-            #     command,
-            #     cwd="hashcat",
-            #     stdout=subprocess.PIPE,
-            #     stderr=subprocess.PIPE,
-            #     stdin=subprocess.PIPE,  # Enable stdin to send commands
-            #     text=text,              # Use text mode for easier string handling
-            #     shell=True,            # Use shell=False for security
-            #     encoding='utf-8'
-            # )
-            # output_thread = threading.Thread(target=read_output, args=(process, terminate_hashcat))
-            # output_thread.start()
-            # output_thread.join()
-
-            # Wait for the process to terminate and get stderr
-        command[0] = hashcat_path
         session_name = str(uuid.uuid4())
-        # session_path = os.path.join(session_folder, session_name)
         command.append('--session')
         command.append(session_name)
-        # command.append(--restore)
         cm = " ".join(command)
         print ('-------------------') 
         print (command)
@@ -286,7 +200,7 @@ async def hash_crack(
                         print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
                         time.sleep(COOLDOWN_TIME_GPU) # 
                         print ('------------- REBORN SESSION --------------')
-                        command = [hashcat_path, '--session', session_name, '--restore']
+                        command = ["hashcat", '--session', session_name, '--restore']
                 else:
                         first_flag = False
                         RESTORE = False
@@ -312,7 +226,7 @@ async def hash_crack(
                     if ABORT_SIGNAL == False:
                         if 'Temp:' in line and 'Fan' in line:
                             last_temp = line.split('Fan')[0].split('Temp: ')[1]
-                            ABORT_SIGNAL = check_temp(line)
+                            ABORT_SIGNAL = check_temp(line, TEMP_LIMIT)
                             print ('ABORT_SIGNAL: ', ABORT_SIGNAL)
                     if "Session..........: " in line:
                         tmp = []
@@ -329,14 +243,9 @@ async def hash_crack(
                     if ABORT_SIGNAL == True and ' [q]uit' in line: # kill after take the last restore 
                         print('OVERHEAT...ABORTING PROCESS..............')
                         print ('last temp recorded: ', last_temp)
-                        process.terminate()
                         RESTORE = True # if die due to heat , reborn
                         ABORT_SIGNAL = False
-                        try:
-                            process.wait(timeout=5)
-                        except subprocess.TimeoutExpired:
-                            process.kill() 
-                            
+                        kill_process(process)     
                         break  # Exit the loop after terminating
 
         # terminate_hashcat(process)
@@ -349,7 +258,7 @@ async def hash_crack(
                 reply_bad_request(message=message)
             else:
                 reply_bad_request(message=stderr)
-
+        kill_process(process)
         url_output = f"http://{host_ip}:{port_num}/static/cracked_hash/{output_file_name}"
         ### check for result 
         output_file_path = os.path.join(cracked_hash_result_folder, output_file)
@@ -374,3 +283,82 @@ async def hash_crack(
 
     except Exception as e:
         return reply_server_error(e)
+
+
+# Define your condition checker
+# def check_condition(line):
+#     """
+#     Replace this function's logic with your actual condition.
+#     For example, terminate when a certain number of hashes are cracked.
+#     """
+#     # Example condition: terminate when "Cracked: 100" appears in output
+#     if "Cracked: 100" in line:
+#         return True
+#     return False
+
+# # Define the termination handler
+# def terminate_hashcat(process):
+#     """
+#     Sends the 'q' command to Hashcat's stdin to terminate it.
+#     """
+    
+#     try:
+#         if process.poll() is None:  # Check if process is still running
+#             print("Condition met. Sending 'q' to terminate Hashcat...")
+#             process.stdin.write('q\n')  # Send 'q' followed by newline
+#             process.stdin.flush()        # Ensure the command is sent immediately
+#             return 
+#     except Exception as e:
+#         print(f"Error sending 'q': {e}")
+    
+# Define the output reader
+# def read_output(process, on_condition_met):
+#     """
+#     Reads the subprocess's stdout line by line.
+#     Calls on_condition_met() when the condition is satisfied.
+#     """
+#     tmp = []
+#     flag = False
+#     for line in process.stdout:
+#         # Process the output as per your original logic
+#         if "Session..........: " in line:
+#             tmp = []
+#             flag = True
+#         if "Hardware.Mon." in line:
+#             tmp.append(line)
+#             flag = False
+#             with open(hashcat_temp_output, 'w', encoding='utf-8', errors='ignore') as f:
+#                 for tmp_line in tmp:
+#                     f.write(tmp_line)
+#         if flag:
+#             tmp.append(line)
+#         if hashcat_running_output:
+#             print(line, end='')  # Print the output in real-time
+
+#         # Check if the line meets the condition
+#         if check_condition(line):
+#             on_condition_met(process)
+#             break  # Exit the loop after condition is met
+
+#     # Continue reading remaining output if necessary
+#     for line in process.stdout:
+#         if hashcat_running_output:
+#             print(line, end='')
+
+# while RESTORE_HASHCAT:
+    # Start the subprocess with stdin enabled
+    # process = subprocess.Popen(
+    #     command,
+    #     cwd="hashcat",
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.PIPE,
+    #     stdin=subprocess.PIPE,  # Enable stdin to send commands
+    #     text=text,              # Use text mode for easier string handling
+    #     shell=True,            # Use shell=False for security
+    #     encoding='utf-8'
+    # )
+    # output_thread = threading.Thread(target=read_output, args=(process, terminate_hashcat))
+    # output_thread.start()
+    # output_thread.join()
+
+    # Wait for the process to terminate and get stderr

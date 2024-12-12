@@ -41,6 +41,12 @@ hashcat_hash_code_dict = {
     "$bitlocker$": ['22100'],
     "$7z$": ['11600']
 }
+def kill_process(process):
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill() 
 
 import time 
 def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
@@ -69,9 +75,12 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
             print(line, end='')  # Print the output in real-time
             for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:
                 if error in line:
+                    kill_process(process)
                     return False, error
             if 'Exhausted' in line:
+                    kill_process(process)
                     return True, None
+    kill_process(process)
     return False, 'first recorded error'
 def find_hashcat_hash_code(extract_hash_result_file, real_hash):
     '''

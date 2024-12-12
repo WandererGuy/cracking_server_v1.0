@@ -146,3 +146,11 @@ def handle_response(response):
     else:
         raise MyHTTPException(status_code=500, message = f"Request failed with status code {response.status_code}")
     # sys.exit()
+
+def check_temp(line, TEMP_LIMIT):
+    for x in range(TEMP_LIMIT, TEMP_LIMIT+10): # make sure dont miss a temp once over temp limit 
+        x = str(x)  
+        if f'Temp: {x}c' in line:
+            return True
+    else: 
+        return False
