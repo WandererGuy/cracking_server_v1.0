@@ -34,11 +34,12 @@ port_num = config['DEFAULT']['port']
 hashcat_running_output = config['DEFAULT']['hashcat_running_output'] 
 hashcat_running_output = empty_to_false(hashcat_running_output)
 terminal_crack_warmup_time = int(config['DEFAULT']['terminal_crack_warmup_time'])
+hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
 
 router = APIRouter()
-TEMP_LIMIT = 85
+TEMP_LIMIT = 96
 ABORT_SIGNAL = False
-COOLDOWN_TIME_GPU = 12
+COOLDOWN_TIME_GPU = 30
 
 @router.post("/prince-generate/")
 async def prince_generate(    
@@ -59,7 +60,7 @@ async def prince_generate(
                                         # generate a word with the opposite case of the first letter
 ):
     if not os.path.exists(prince_wordlist):
-        message = f"file_path {prince_wordlist} does not exist"
+        message = f"file_path {fix_path(prince_wordlist)} does not exist"
         return reply_bad_request(message = message)
 
         # Convert empty strings to None for optional parameters
@@ -83,7 +84,7 @@ async def prince_generate(
 
     for item in [prince_wordlist]:
         if item != None and os.path.exists(item) is False:
-            message = f'file path {item} does not exist'
+            message = f'file path {fix_path(item)} does not exist'
             return reply_bad_request(message)
     try:
         prince_command = genPrinceCommandNormal(
@@ -179,7 +180,7 @@ async def prince_hashcat(
     case_permute = empty_to_false(case_permute)
 
     if not os.path.exists(prince_wordlist):
-        message = f"file_path {prince_wordlist} does not exist"
+        message = f"file_path {fix_path(prince_wordlist)} does not exist"
         return reply_bad_request(message = message)
 
                 ################## HASHCAT ##################
@@ -194,7 +195,7 @@ async def prince_hashcat(
 
     for item in [hash_file, rule_path]:
         if item != None and os.path.exists(item) is False:
-            message = f'file path {item} does not exist'
+            message = f'file path {fix_path(item)} does not exist'
             return reply_bad_request (message)
         
     if status in ["True", "1", "true"]:
@@ -202,7 +203,7 @@ async def prince_hashcat(
 
     for item in [hash_file, rule_path]:
         if item != None and os.path.exists(item) is False:
-            message = f'file path {item} does not exist'
+            message = f'file path {fix_path(item)} does not exist'
             return reply_bad_request (message)
 
     if attack_mode == None:
@@ -276,6 +277,7 @@ async def prince_hashcat(
         session_name = str(uuid.uuid4())
         command.append('--session')
         command.append(session_name)
+        command[0] = hashcat_path
 
         ####### PRINCE PIPE #######
         prince_command.append('|')
@@ -299,7 +301,7 @@ async def prince_hashcat(
                         print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
                         time.sleep(COOLDOWN_TIME_GPU) # 
                         print ('------------- REBORN SESSION --------------')
-                        command = ["hashcat", '--session', session_name, '--restore']
+                        command = [hashcat_path, '--session', session_name, '--restore']
                 else:
                         first_flag = False
                         RESTORE = False
@@ -349,8 +351,10 @@ async def prince_hashcat(
         if stderr:
             if "No hashes loaded" in stderr:
                 message = "No hash found in file OR hashcat_hash_code is not correct with hash in file"
-                return reply_bad_request(message = message)
-            return reply_bad_request(message = stderr)
+                reply_bad_request(message=message)
+            else:
+                reply_bad_request(message=stderr)
+        kill_process(process)
 
 
 

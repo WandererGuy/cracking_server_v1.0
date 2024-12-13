@@ -116,7 +116,7 @@ async def hash_crack(
 
     for item in [hash_file, mask_file, wordlist_file, rule_path]:
         if item != None and os.path.exists(item) is False:
-            message = f'file path {item} does not exist'
+            message = f'file path {fix_path(item)} does not exist'
             return reply_bad_request (message)
 
     if mask_file != None and wordlist_file != None:
@@ -203,6 +203,7 @@ async def hash_crack(
                             shell=True,
                             encoding='utf-8') as process:
                 # Read and print output line by line as it comes
+
                 flag = False
                 for line in process.stdout:
                     if "Session..........: " in line:

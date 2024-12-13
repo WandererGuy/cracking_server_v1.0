@@ -32,7 +32,7 @@ BONUS_MESSAGE = f'Also, please notice these 4 rules for your hash file: \
 def hash_validate(path_0, hashcat_hash_code):
     value, error = test_hashcat_hash_code(path_0, hashcat_hash_code)
     if  value != False: # success
-        pass
+        return True, None
     else:
         message = f'Invalid hash in hash file, shown in file\'{fix_path(path_0)}\' have error \'{error}\' for hashcat hash code \'{hashcat_hash_code}\'. \
                     step1: Please find correct hashcat hash code for hash through other tools. If fail, please fix the hash according to error OR remove the hash from file \
@@ -40,15 +40,14 @@ def hash_validate(path_0, hashcat_hash_code):
                     Asking yourself if the hash need to be same length/same pattern to fix the error. \
                     '
         message = message + BONUS_MESSAGE
-        raise MyHTTPException(status_code=400, message = message)
-
+        return False, message
+    
 
 
 def hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder):
     empty_file = True # make sure hash file not empty
     filename_0 = str(uuid.uuid4()) + '.txt'
     path_0 = os.path.join(hash_dump_folder, filename_0)
-
     with open(hash_file, 'r') as f:
         hashes = f.readlines()
         for index, hash in enumerate(hashes):
@@ -58,7 +57,9 @@ def hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder):
             empty_file = False
             with open(path_0, 'w') as f_0:
                 f_0.write(hash)
-            hash_validate(path_0, hashcat_hash_code)
+            valid, message = hash_validate(path_0, hashcat_hash_code)
+            if valid == False:
+                return False, message
             # if index == 0:
             #     fix_hashcat_hash_code = hashcat_hash_code
             # else:
@@ -69,7 +70,34 @@ def hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder):
             #                                file can only have 1 type of hash. \
             #                                Please keep all hash the same type ')
     if empty_file == True:
-        raise MyHTTPException(status_code=400, message = 
-                               'hash file is empty. \
-                               Please add hash to the hash file.')
-    print ('hashfile is valid')
+        return "empty", None
+    else: 
+        return True, None
+    
+
+
+def validate_hashfile_request(hash_file, 
+                      hashcat_hash_code, 
+                      hash_dump_folder, 
+                      validate_hashfile_url): 
+    
+
+    '''
+    return 
+        {
+    "status_code": 200,
+    "message": "",
+    "result": 
+    
+}
+    '''
+    payload = {"hash_file" : hash_file,
+               "hashcat_hash_code" : hashcat_hash_code, 
+               "hash_dump_folder" : hash_dump_folder
+    }
+    files=[
+    ]
+    headers = {}
+    response = requests.request("POST", validate_hashfile_url, headers=headers, data=payload, files=files)
+    return response
+

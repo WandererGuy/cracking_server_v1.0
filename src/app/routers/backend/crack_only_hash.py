@@ -5,11 +5,11 @@ from utils.common import fix_path, handle_response
 from routers.model import reply_bad_request, reply_success
 from utils.frontend_validation import is_utf8, target_input_validation
 from utils.common import empty_to_none
-from utils.backend.validate_hashfile import hashfile_validate, ls_support_hashcat_hash_code
+from utils.validate_hashfile import validate_hashfile_request, ls_support_hashcat_hash_code
 from utils.backend.targuess import targuess_generate
 from utils.backend.hashcat import use_hashcat, handle_hashcat_response
 from utils.backend.write_hashfile import write_to_remaining_hashfile, end_cracking
-
+import time 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(os.path.dirname(script_dir))
@@ -27,7 +27,7 @@ PORT_BACKEND = config['DEFAULT']['PORT_BACKEND']
 HASH_CRACK_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/hash-crack/"
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
 TARGUESS_URL_MASKLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-mask-list/"
-
+VALIDATE_HASHFILE_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/validate-hashfile/"
 
 router = APIRouter()
 static_path = os.path.join(parent_dir,'static')
@@ -99,12 +99,25 @@ async def backend_crack_only_hash(
     if file_info['hash_file'] == None: 
         return reply_bad_request(message = "No hash file input given")
     if not os.path.exists(file_info['hash_file']): 
-        return reply_bad_request(message = f"{hash_file} , directory is not found")
+        return reply_bad_request(message = f"{fix_path(hash_file)} , directory is not found")
     if file_info['additional_wordlist'] != None:
         if not os.path.exists(file_info['additional_wordlist']): 
-            return reply_bad_request(message = f"{additional_wordlist} , directory is not found")
+            return reply_bad_request(message = f"{fix_path(additional_wordlist)} , directory is not found")
     
-    hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder)
+    print ('------------------ VALIDATING HASH FILE ------------------')
+    res = handle_response(validate_hashfile_request(hash_file, 
+                      hashcat_hash_code, 
+                      hash_dump_folder, 
+                      VALIDATE_HASHFILE_URL))
+    message = res["message"]
+    valid = res["result"]
+    if valid == "empty":
+        raise reply_bad_request(status_code=400, message = 
+                        'hash file is empty. \
+                        Please add hash to the hash file.')
+    if valid == False:
+        raise reply_bad_request(status_code=400, message = message)
+    print ('------------------ hashfile is valid ------------------')
 
     with open (file_info['hash_file'], 'r', encoding = 'utf-8') as f:
         lines = f.readlines()
@@ -123,18 +136,21 @@ async def backend_crack_only_hash(
                             targuess_url = TARGUESS_URL_WORDLIST, 
                             target_info = target_info, 
                             max_mask_generate = MAX_MASK_GENERATE_WORDLIST)
+    print ('------------------ receive response from targuess ------------------')
     print (res.json())
     json_res = handle_response(res)
     print ('------------------ ATTEMP WITH TARGUESS WORDLIST (NO RULE) ------------------')
     write_backend_step(content = 'CRACKING HASH WITH TARGET WORDLIST (NO RULE)')
-    WORDLIST_FILE_TARGUESS = json_res['result']['path']
+    WORDLIST_FILE_TARGUESS = fix_path(json_res['result']['path'])
+    time.sleep(4) # for targuess
     hashcat_material = {
         "hash_file": file_info['hash_file'],
         "wordlist_file": WORDLIST_FILE_TARGUESS,
         "hashcat_hash_code": hashcat_hash_code,
         "rule_path": '',
-        "gpu_number": 2 # for now consider 1 is fastest 
+        "gpu_number": '' # for now consider 1 is fastest 
     }
+    print ('hashcat material: ', hashcat_material)
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict = handle_hashcat_response(res)
     if hash_dict != None:
@@ -156,7 +172,7 @@ async def backend_crack_only_hash(
         "wordlist_file": WORDLIST_FILE_TRAWLING,
         "hashcat_hash_code": hashcat_hash_code,
         "rule_path": '',
-        "gpu_number": 2
+        "gpu_number": ''
     }
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict = handle_hashcat_response(res)
@@ -178,7 +194,7 @@ async def backend_crack_only_hash(
         "wordlist_file": WORDLIST_FILE_TARGUESS,
         "hashcat_hash_code": hashcat_hash_code,
         "rule_path": rule_path,
-        "gpu_number": 2
+        "gpu_number": ''
     }
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict = handle_hashcat_response(res)
@@ -200,7 +216,7 @@ async def backend_crack_only_hash(
         "wordlist_file": WORDLIST_FILE_TRAWLING,
         "hashcat_hash_code": hashcat_hash_code,
         "rule_path": rule_path,
-        "gpu_number": 2
+        "gpu_number": ''
     }
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict = handle_hashcat_response(res)

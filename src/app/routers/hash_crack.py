@@ -33,9 +33,9 @@ potfile_folder = os.path.join(static_path, "potfiles")
 hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
 
-TEMP_LIMIT = 85
+TEMP_LIMIT = 96
 ABORT_SIGNAL = False
-COOLDOWN_TIME_GPU = 12
+COOLDOWN_TIME_GPU = 30
 def create_hashcat_command_general(input: dict):
     command = ["hashcat"]
     check_dict = {
@@ -122,7 +122,7 @@ async def hash_crack(
 
     for item in [hash_file, mask_file, wordlist_file, rule_path]:
         if item != None and os.path.exists(item) is False:
-            message = f'file path {item} does not exist'
+            message = f'file path {fix_path(item)} does not exist'
             return reply_bad_request (message)
 
     if mask_file != None and wordlist_file != None:
@@ -186,6 +186,8 @@ async def hash_crack(
         session_name = str(uuid.uuid4())
         command.append('--session')
         command.append(session_name)
+        command.append('--backend-ignore-opencl')
+        command[0] = hashcat_path
         cm = " ".join(command)
         print ('-------------------') 
         print (command)
@@ -200,7 +202,7 @@ async def hash_crack(
                         print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
                         time.sleep(COOLDOWN_TIME_GPU) # 
                         print ('------------- REBORN SESSION --------------')
-                        command = ["hashcat", '--session', session_name, '--restore']
+                        command = [hashcat_path, '--session', session_name, '--restore']
                 else:
                         first_flag = False
                         RESTORE = False
@@ -210,7 +212,7 @@ async def hash_crack(
                             stderr=subprocess.PIPE, 
                             stdin=subprocess.PIPE,
                             text=text, 
-                            shell=False,
+                            shell=False, # shell == False needs hashcat to be hashcat path, False for less error chance for cracking 
                             encoding='utf-8'
                             )
                 time.sleep(terminal_crack_warmup_time) # for restart slow terminal 

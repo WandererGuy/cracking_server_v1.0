@@ -59,9 +59,12 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
     command.append(hashcat_hash_code)
     command.append('--potfile-path')
     command.append(fake_potfile_path)
+    command.append('--backend-ignore-opencl')
     cm = " ".join(command)
     print ('fake test hashcat_hash_code: ')
     print (cm)
+    error_flag = False
+    exhausted_flag = False
     with subprocess.Popen(command, 
                         cwd="hashcat", 
                         stdout=subprocess.PIPE, 
@@ -75,12 +78,17 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
             print(line, end='')  # Print the output in real-time
             for error in ["No hashes loaded", "Token length exception", "Separator unmatched"]:
                 if error in line:
-                    kill_process(process)
-                    return False, error
+                    error_flag = True
+                    # if last_item: kill_process(process)
+                    # return False, error
             if 'Exhausted' in line:
-                    kill_process(process)
-                    return True, None
-    kill_process(process)
+                    exhausted_flag = True
+                    # if last_item: kill_process(process)
+                    # return True, None
+    # kill_process(process)
+    # if last_item: kill_process(process)
+    if exhausted_flag: return True, None
+    if error_flag: return False, error
     return False, 'first recorded error'
 def find_hashcat_hash_code(extract_hash_result_file, real_hash):
     '''
@@ -91,6 +99,7 @@ def find_hashcat_hash_code(extract_hash_result_file, real_hash):
     '''
     for key, value in hashcat_hash_code_dict.items():
         if key in real_hash:
+
             for hashcat_hash_code in value:
                 valid_code, error = test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code)
                 if valid_code is False: continue
@@ -144,7 +153,7 @@ async def extract_hash(
     ):
     
     if not os.path.exists(file_path):
-        message = f"file_path {file_path} does not exist"
+        message = f"file_path {fix_path(file_path)} does not exist"
         return reply_bad_request(message = message)
 
 

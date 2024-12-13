@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from routers.hash_crack import router as hash_crack_router
 from routers.extract_hash import router as extract_hash_router 
 from routers.prince import router as prince_router 
-
+from routers.validate_hashfile import router as validate_hashfile_router
 from routers.model import MyHTTPException, my_exception_handler
 from utils.common import empty_to_false
 
@@ -36,7 +36,7 @@ app = FastAPI()
 app.include_router(hash_crack_router)
 app.include_router(extract_hash_router)
 app.include_router(prince_router)
-
+app.include_router(validate_hashfile_router)
 app.add_exception_handler(MyHTTPException, my_exception_handler)
 
 
