@@ -225,6 +225,13 @@ async def hash_crack(
                         exhausted_flag = True
                     elif ": Cracked" in line: 
                         RESTORE = False # escape hashcat , no more reborn
+                    elif ": Aborted" in line: 
+                        print ('gpu self Aborted, maybe by temp')
+                        print ('last temp recorded: ', last_temp)
+                        RESTORE = True # if die due to heat , reborn
+                        ABORT_SIGNAL = False
+                        kill_process(process)     
+                        break  # Exit the loop after terminating
                     if ABORT_SIGNAL == False:
                         if 'Temp:' in line and 'Fan' in line:
                             last_temp = line.split('Fan')[0].split('Temp: ')[1]

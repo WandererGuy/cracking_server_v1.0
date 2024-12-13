@@ -112,11 +112,11 @@ async def backend_crack_only_hash(
     message = res["message"]
     valid = res["result"]
     if valid == "empty":
-        raise reply_bad_request(status_code=400, message = 
+        raise reply_bad_request(message = 
                         'hash file is empty. \
                         Please add hash to the hash file.')
     if valid == False:
-        raise reply_bad_request(status_code=400, message = message)
+        raise reply_bad_request(message = message)
     print ('------------------ hashfile is valid ------------------')
 
     with open (file_info['hash_file'], 'r', encoding = 'utf-8') as f:
@@ -165,7 +165,7 @@ async def backend_crack_only_hash(
     write_backend_step(content = 'CRACKING HASH WITH TRAWLING WORDLIST (NO RULE)')
     # trawling wordlist < 1GB 
     WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(),'wordlist_samples','zing_tailieuvn_smallwordlist.txt')
-    WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(), 'samples', 'wordlist','fake.txt')
+    # WORDLIST_FILE_TRAWLING = os.path.join(os.getcwd(), 'samples', 'wordlist','fake.txt')
 
     hashcat_material = {
         "hash_file": remaining_hash_file,
