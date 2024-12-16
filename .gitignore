@@ -2,6 +2,7 @@
 
 env
 samples/disk_E.image.001
+!hashcat/
 hashcat/*.induct
 hashcat/*.outfiles
 hashcat/*.log

@@ -27,7 +27,7 @@ config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 port_num = config['DEFAULT']['port_status_hash_crack'] 
 production = config['DEFAULT']['production']
-
+num_workers = int(config['DEFAULT']['num_workers'])
 from contextlib import asynccontextmanager
 from routers.extract_hash import find_hashcat_hash_code
 import pandas as pd 
@@ -141,8 +141,8 @@ async def get_status_session(
 def main():
     print ('INITIALIZING FASTAPI SERVER')
     if empty_to_false(production) == False: 
-        uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=True, workers = 2)
-    else: uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=False, workers = 2)
+        uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=True, workers = num_workers)
+    else: uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=False, workers = num_workers)
 
 if __name__ == "__main__":
     main()
