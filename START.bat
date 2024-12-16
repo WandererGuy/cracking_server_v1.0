@@ -4,9 +4,9 @@ REM Path to your Conda executable (adjust if necessary)
 REM set CONDA_EXE=C:\Users\YourUsername\Anaconda3\Scripts\activate.bat
 
 REM Path to your Conda environment
+set current_dir=%~dp0
 
-set CONDA_ENV_PATH=C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\env
-
+set CONDA_ENV_PATH=%current_dir%env
 REM Path to your Python script
 set SCRIPT_PATH_1=src\app\main.py
 set SCRIPT_PATH_2=src\app\main_backend.py

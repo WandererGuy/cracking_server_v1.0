@@ -118,7 +118,9 @@ Follow the guide to install and set up the virtual environment:
 
 Install the required Python packages in your Conda environment:
 ```bash
-pip install fastapi uvicorn pydantic python-multipart tqdm
+pip install fastapi uvicorn pydantic python-multipart tqdm openpyxl pandas
+
+
 ```
 # III. For Windows: Build from Source with Cygwin
 
