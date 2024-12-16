@@ -1,5 +1,11 @@
 # Usage
 change to ip of the host in src/app/config.ini
+
+
+## 2 WAYS:
+### FIRST, use START.bat (remember to change env path)
+
+### ALTERNATIVELY, 
 ```bash
 conda activate ...
 python src/app/main.py
@@ -8,6 +14,11 @@ in another terminal
 ```bash
 conda activate ...
 python src/app/main_status.py
+```
+in another terminal
+```bash
+conda activate ...
+python src/app/main_update.py
 ```
 in another terminal
 ```bash

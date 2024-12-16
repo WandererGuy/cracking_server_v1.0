@@ -35,7 +35,7 @@ def hash_validate(path_0, hashcat_hash_code):
         return True, None
     else:
         message = f'Invalid hash in hash file, shown in file\'{fix_path(path_0)}\' have error \'{error}\' for hashcat hash code \'{hashcat_hash_code}\'. \
-                    step1: Please find correct hashcat hash code for hash through other tools. If fail, please fix the hash according to error OR remove the hash from file \
+                    step1: Please check for correct hashcat hash code for hash through other tools. If still fail, please fix the hash according to error OR remove the hash from file \
                     For fixing error, you can find example hash example for each hash type in pdf file: {document_path} to compare your hash \
                     Asking yourself if the hash need to be same length/same pattern to fix the error. \
                     '

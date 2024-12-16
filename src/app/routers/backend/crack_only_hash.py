@@ -15,6 +15,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(os.path.dirname(script_dir))
 config_path = os.path.join(parent_dir,'config.ini')
 
+
 import configparser
 config = configparser.ConfigParser()
 config.read(config_path)
@@ -96,6 +97,9 @@ async def backend_crack_only_hash(
         if target_info[key] != None:
             is_utf8(target_info[key])
 
+    target_input_validation(target_info)
+
+
     if file_info['hash_file'] == None: 
         return reply_bad_request(message = "No hash file input given")
     if not os.path.exists(file_info['hash_file']): 
@@ -112,11 +116,11 @@ async def backend_crack_only_hash(
     message = res["message"]
     valid = res["result"]
     if valid == "empty":
-        raise reply_bad_request(message = 
+        return reply_bad_request(message = 
                         'hash file is empty. \
                         Please add hash to the hash file.')
     if valid == False:
-        raise reply_bad_request(message = message)
+        return reply_bad_request(message = message)
     print ('------------------ hashfile is valid ------------------')
 
     with open (file_info['hash_file'], 'r', encoding = 'utf-8') as f:
@@ -127,7 +131,6 @@ async def backend_crack_only_hash(
 
     uncracked_hashes = list(set(uncracked_hashes))
 
-    target_input_validation(target_info)
 
     # start working 
     # targuess wordlist

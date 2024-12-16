@@ -145,9 +145,37 @@ def find_hash(file_type, stdout):
         return real_hash
     else: return None
 
+import pandas as pd
+def session_save(session_folder_path, hash_file, res):
+    excel_path = os.path.join(session_folder_path, 'session.xlsx')
+    df = pd.read_excel(excel_path)
+    os.makedirs(session_folder_path, exist_ok=True)
+    for hash, hashcat_hash_code in res.items():
+        name_single_hash_file = str(uuid.uuid4()) + '.txt'
+        folder_1 = os.path.join(session_folder_path, hashcat_hash_code)
+        file_1 = os.path.join(folder_1, name_single_hash_file)
+        all_same_hashcat_hash_code_file = os.path.join(folder_1, 'all.txt')
+        os.makedirs(file_1, exist_ok=True)
+        with open(file_1, 'w') as f:
+            f.write(hash)
+        with open(all_same_hashcat_hash_code_file, 'a') as f:
+            f.write(hash)
+            f.write('\n')
+        new_row = {
+                'hash value in file': file_1, 
+                'original extracted file path': hash_file, 
+                'original hash file path': "", 
+                'hashcat hash code': hashcat_hash_code, 
+                'hashes same hashcat hash code in file': all_same_hashcat_hash_code_file, 
+                'plaintext password': ""
+                }
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    df.to_excel(excel_path, index=False)
+
 
 @router.post ("/extract-hash") 
-async def extract_hash(    
+async def extract_hash(  
+    session_name: str = Form(...),  
     file_type: str = Form(...),
     file_path: str = Form(...)
     ):
@@ -205,12 +233,15 @@ async def extract_hash(
             message = "Cannot find hashcat hash_code for the hash. Maybe hash extracted wrong or not hash not supported by hashcat"
             return reply_bad_request(message)
         path = f"http://{host_ip}:{port_num}/static/extract_hash_results/{filename}"
-        result =  {
-                "path": fix_path(extract_hash_result_file), 
-                "url": path,
-                "hashcat_hash_code": hashcat_hash_code
-                 }
+        # result =  {
+        #         "path": fix_path(extract_hash_result_file), 
+        #         "url": path,
+        #         "hashcat_hash_code": hashcat_hash_code
+        #          }
+        result = None
         message = "Result saved successfully"
+        session_folder_path = os.path.join(static_path, 'session', session_name)
+        session_save(session_folder_path, fix_path(file_path), {real_hash:hashcat_hash_code})
         return reply_success(message, result)
     except Exception as e:
         return reply_server_error(e)

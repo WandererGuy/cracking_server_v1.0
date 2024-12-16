@@ -31,9 +31,10 @@ app.include_router(generate_target_wordlist_router)
 def main():
     print ('INITIALIZING FASTAPI SERVER')
     if empty_to_false(production) == False: 
-        uvicorn.run("main_backend:app", host=host_ip, port=int(port_num), reload=True)
-    else: uvicorn.run(app, host=host_ip, port=int(port_num), reload=False)
+        uvicorn.run("main_backend:app", host=host_ip, port=int(port_num), reload=True, workers=3)
+    else: uvicorn.run("main_backend:app", host=host_ip, port=int(port_num), reload=False, workers=3)
 
 
 if __name__ == "__main__":
     main()
+    
