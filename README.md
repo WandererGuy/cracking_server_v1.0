@@ -97,7 +97,7 @@ Follow the guide to install and set up the virtual environment:
 
 6. **Install necessary Python packages:**
     ```bash
-    pip install fastapi uvicorn pydantic python-multipart tqdm
+    pip install fastapi uvicorn pydantic python-multipart tqdm pandas openpyxl
     ```
 
 ---

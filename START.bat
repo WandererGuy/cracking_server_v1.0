@@ -8,12 +8,16 @@ set current_dir=%~dp0
 
 set CONDA_ENV_PATH=%current_dir%env
 REM Path to your Python script
+set SCRIPT_PATH_0=src\app\change_ip.py
 set SCRIPT_PATH_1=src\app\main.py
 set SCRIPT_PATH_2=src\app\main_backend.py
 set SCRIPT_PATH_3=src\app\main_update.py
 set SCRIPT_PATH_4=src\app\main_status.py
 
 REM Open first terminal
+start "Change ip" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_0%""
+timeout /t 2 /nobreak
+
 start "Terminal 1" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_1%""
 
 REM Open second terminal
