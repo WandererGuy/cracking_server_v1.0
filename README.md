@@ -3,7 +3,7 @@ change to ip of the host in src/app/config.ini
 
 
 ## 2 WAYS:
-### FIRST, use START.bat (remember to change env path)
+use START.bat
 
 ### ALTERNATIVELY, 
 ```bash

@@ -153,6 +153,9 @@ def session_save(session_folder_path, hash_file, res):
     for hash, hashcat_hash_code in res.items():
         name_single_hash_file = str(uuid.uuid4()) + '.txt'
         folder_1 = os.path.join(session_folder_path, hashcat_hash_code)
+        os.makedirs(folder_1, exist_ok=True)
+        print ('---------------')
+        print (folder_1)
         file_1 = os.path.join(folder_1, name_single_hash_file)
         all_same_hashcat_hash_code_file = os.path.join(folder_1, 'all.txt')
         os.makedirs(file_1, exist_ok=True)
