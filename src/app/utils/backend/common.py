@@ -20,6 +20,9 @@ def split_file_into_small_big(path, limit_small_keyspace, limit_big_keyspace):
     small_keyspace_total = 0
     big_keyspace_total = 0
     possible_keyspace = 0
+    index = 0 # for empty file 
+    print ('SPLITTING WORD/MASK LIST')
+    print (path)
     with open (path, 'r') as f:
         lines = f.readlines()
         for index, line in enumerate(lines):

@@ -178,18 +178,18 @@ async def backend_crack_only_hash(
     print ('choose cracked hash file: ', cracked_hash_file)
 
     flow_component = {
-        'target_wl': 0,
-        'target_wl_small_rule': 0,
-        'small_trawling_wl': 0,
-        'small_trawling_wl_small_rule': 0,
-        'big_trawling_wl': 0,
-        'big_trawling_wl_small_rule': 0,
-        'small_target_ml': 0,
-        'small_target_ml_small_rule': 0,
-        'big_target_ml': 0,
-        'big_target_ml_small_rule': 0,
-        'small_trawling_ml': 0,
-        'small_trawling_ml_small_rule': 0,
+        'target_wl': 1,
+        'target_wl_small_rule': 1,
+        'small_trawling_wl': 1,
+        'small_trawling_wl_small_rule': 1,
+        'big_trawling_wl': 1,
+        'big_trawling_wl_small_rule': 1,
+        'small_target_ml': 1,
+        'small_target_ml_small_rule': 1,
+        'big_target_ml': 1,
+        'big_target_ml_small_rule': 1,
+        'small_trawling_ml': 1,
+        'small_trawling_ml_small_rule': 1,
         'big_trawling_ml': 1,
         'big_trawling_ml_small_rule':   1,
         'first_desperate_ml': 1,
@@ -404,6 +404,12 @@ async def backend_crack_only_hash(
                                                                                          limit_small_keyspace = LIMIT_SMALL_TARGET_MASK_KEYSPACE, 
                                                                                          limit_big_keyspace = LIMIT_BIG_TARGET_MASK_KEYSPACE)
     time.sleep(4) # for targuess SAVE
+
+    MASKLIST_FILE_TRAWLING_SMALL, MASKLIST_FILE_TRAWLING_BIG = split_file_into_small_big(path = MASKLIST_FILE_TRAWLING, 
+                                                                                         limit_small_keyspace = LIMIT_SMALL_TRAWLING_MASK_KEYSPACE, 
+                                                                                         limit_big_keyspace = LIMIT_BIG_TRAWLING_MASK_KEYSPACE)
+    time.sleep(4) # for SAVE
+
     if flow_component['small_target_ml']:
 
         print ('------------------ ATTEMP WITH SMALL TARGET MASKLIST (NO RULE) ------------------')
@@ -482,10 +488,6 @@ async def backend_crack_only_hash(
 
 
 
-    MASKLIST_FILE_TRAWLING_SMALL, MASKLIST_FILE_TRAWLING_BIG = split_file_into_small_big(path = MASKLIST_FILE_TRAWLING, 
-                                                                                         limit_small_keyspace = LIMIT_SMALL_TRAWLING_MASK_KEYSPACE, 
-                                                                                         limit_big_keyspace = LIMIT_BIG_TRAWLING_MASK_KEYSPACE)
-    time.sleep(4) # for SAVE
 
     if flow_component['small_trawling_ml']:
         print ('------------------ ATTEMP WITH SMALL TRAWLING MASKLIST (NO RULE) ------------------')

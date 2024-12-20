@@ -1,26 +1,27 @@
-CRACKING HASH WITH BIG TRAWLING WORDLIST  (WITH SMALL RULE)
-Speed.#1.........:    33509 H/s (6.48ms) @ Accel:1024 Loops:1 Thr:64 Vec:1
-Progress.........: 51054159/51054159 (100.00%)
+CRACKING HASH WITH BIG TRAWLING WORDLIST  (WITH BIG RULE)
+Speed.#1.........: 15080.2 kH/s (41.74ms) @ Accel:64 Loops:128 Thr:32 Vec:1
+Progress.........: 2282749952/2654509943046 (0.09%)
 
 
 
-Session..........: b0d54a1e-9f60-460c-ae23-b6bb969c98c5
-Status...........: Exhausted
+Session..........: 41952ef8-37c1-4856-99e8-348d7c035b23
+Status...........: Running
 Hash.Mode........: 0 (MD5)
-Hash.Target......: C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\src\app\static\backend\remaining_hash\8cf1c67a-c3c3-48b6-9e91-9971a5f8c7a8.txt
-Time.Started.....: Thu Dec 19 17:26:45 2024 (25 mins, 24 secs)
-Time.Estimated...: Thu Dec 19 17:52:09 2024 (0 secs)
+Hash.Target......: C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\src\app\static\backend\remaining_hash\b2cd2fca-8597-45e5-897e-1d12f7f5c2b4.txt
+Time.Started.....: Fri Dec 20 13:26:37 2024 (2 mins, 34 secs)
+Time.Estimated...: Sun Dec 22 14:20:26 2024 (2 days, 0 hours)
 Kernel.Feature...: Pure Kernel
 Guess.Base.......: File (C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\wordlist_samples\zing_tailieuvn_smallwordlist.txt)
+Guess.Mod........: Rules (C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\rule_sample\OneRuleToRuleThemAll.rule)
 Guess.Queue......: 1/1 (100.00%)
-Speed.#1.........:    33509 H/s (6.48ms) @ Accel:1024 Loops:1 Thr:64 Vec:1
-Recovered........: 4944087/7134254 (69.30%) Digests (total), 4944087/7134254 (69.30%) Digests (new)
-Remaining........: 2190167 (30.70%) Digests
-Recovered/Time...: CUR:274417,N/A,N/A AVG:194654.86,N/A,N/A (Min,Hour,Day)
-Progress.........: 51054159/51054159 (100.00%)
-Rejected.........: 0/51054159 (0.00%)
-Restore.Point....: 51054159/51054159 (100.00%)
-Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Speed.#1.........: 15080.2 kH/s (41.74ms) @ Accel:64 Loops:128 Thr:32 Vec:1
+Recovered........: 448221/7134329 (6.28%) Digests (total), 448221/7134329 (6.28%) Digests (new)
+Remaining........: 6686108 (93.72%) Digests
+Recovered/Time...: CUR:177548,N/A,N/A AVG:174820.28,N/A,N/A (Min,Hour,Day)
+Progress.........: 2282749952/2654509943046 (0.09%)
+Rejected.........: 0/2282749952 (0.00%)
+Restore.Point....: 0/51054159 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:39680-39808 Iteration:0-128
 Candidate.Engine.: Device Generator
-Candidates.#1....: iikingsseventeen:THREETWO! -> 11111111111111111111111111111111111111111111111111111111111111111111111111111
-Hardware.Mon.#1..: Temp: 47c Fan:  0% Util: 13% Core: 840MHz Mem:5000MHz Bus:16
+Candidates.#1....: 1615 -> Dyi14
+Hardware.Mon.#1..: Temp: 49c Fan:  0% Util: 12% Core: 480MHz Mem: 810MHz Bus:16
