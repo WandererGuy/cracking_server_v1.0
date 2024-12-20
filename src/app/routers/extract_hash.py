@@ -2,10 +2,12 @@ from fastapi import Form, APIRouter
 import os 
 import configparser
 import subprocess
+import uuid
 from utils.extract_hash import *
-from utils.common import *
+from utils.common import fix_path, generate_unique_filename, \
+    is_file_open, check_value_in_list, gen_extract_command, support_file_type
 from routers.model import reply_bad_request, reply_success, reply_server_error
-
+from utils.session import session_save
 
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
 # logger = logging.getLogger(__name__)
@@ -85,6 +87,11 @@ def test_hashcat_hash_code(extract_hash_result_file, hashcat_hash_code):
                     exhausted_flag = True
                     # if last_item: kill_process(process)
                     # return True, None
+        for line in process.stderr:
+            exception_1 = 'This hash-mode plugin cannot crack multiple hashes with the same salt, please select one of the hashes.'
+            if exception_1 in line:
+                return False, exception_1
+
     # kill_process(process)
     # if last_item: kill_process(process)
     if exhausted_flag: return True, None
@@ -145,35 +152,9 @@ def find_hash(file_type, stdout):
         return real_hash
     else: return None
 
+
 import pandas as pd
-def session_save(session_folder_path, hash_file, res):
-    excel_path = os.path.join(session_folder_path, 'session.xlsx')
-    df = pd.read_excel(excel_path)
-    os.makedirs(session_folder_path, exist_ok=True)
-    for hash, hashcat_hash_code in res.items():
-        name_single_hash_file = str(uuid.uuid4()) + '.txt'
-        folder_1 = os.path.join(session_folder_path, hashcat_hash_code)
-        os.makedirs(folder_1, exist_ok=True)
-        print ('---------------')
-        print (folder_1)
-        file_1 = os.path.join(folder_1, name_single_hash_file)
-        all_same_hashcat_hash_code_file = os.path.join(folder_1, 'all.txt')
-        os.makedirs(file_1, exist_ok=True)
-        with open(file_1, 'w') as f:
-            f.write(hash)
-        with open(all_same_hashcat_hash_code_file, 'a') as f:
-            f.write(hash)
-            f.write('\n')
-        new_row = {
-                'hash value in file': file_1, 
-                'original extracted file path': hash_file, 
-                'original hash file path': "", 
-                'hashcat hash code': hashcat_hash_code, 
-                'hashes same hashcat hash code in file': all_same_hashcat_hash_code_file, 
-                'plaintext password': ""
-                }
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    df.to_excel(excel_path, index=False)
+
 
 
 @router.post ("/extract-hash") 
@@ -186,6 +167,16 @@ async def extract_hash(
     if not os.path.exists(file_path):
         message = f"file_path {fix_path(file_path)} does not exist"
         return reply_bad_request(message = message)
+    
+    session_folder_path = os.path.join(static_path, 'session', session_name)
+
+    if os.path.exists(session_folder_path) == False:
+        message = f"no session name {session_name} does not exist"
+        return reply_bad_request(message = message)
+
+    excel_path = os.path.join(session_folder_path, 'session.xlsx')
+    message = f'please close excel file {fix_path(excel_path)} so that system can write new data to it'
+    if is_file_open(excel_path): return reply_bad_request(message)
 
 
 
@@ -243,8 +234,14 @@ async def extract_hash(
         #          }
         result = None
         message = "Result saved successfully"
-        session_folder_path = os.path.join(static_path, 'session', session_name)
-        session_save(session_folder_path, fix_path(file_path), {real_hash:hashcat_hash_code})
+        
+
+        session_save(excel_path = excel_path, 
+                        session_folder_path = session_folder_path, 
+                        hash_file = None, 
+                        res = {real_hash:hashcat_hash_code}, 
+                        original_extracted_file_path = file_path)
+
         return reply_success(message, result)
     except Exception as e:
         return reply_server_error(e)

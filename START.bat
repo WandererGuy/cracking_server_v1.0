@@ -18,13 +18,13 @@ REM Open first terminal
 start "Change ip" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_0%""
 timeout /t 2 /nobreak
 
-start "Terminal 1" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_1%""
+start "main.py" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_1%""
 
 REM Open second terminal
-start "Terminal 2" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_2%""
+start "main_backend.py" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_2%""
 
 REM Open third terminal
-start "Terminal 3" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_3%""
+start "main_update.py" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_3%""
 
 REM Open fourth terminal
-start "Terminal 4" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_4%""
+start "main_status" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_4%""

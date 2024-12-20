@@ -1,24 +1,26 @@
-CRACKING HASH WITH TRAWLING WORDLIST (NO RULE)
-Speed.#1.........:    39275 H/s (10.63ms) @ Accel:64 Loops:64 Thr:128 Vec:1
-Progress.........: 33947648/51054159 (66.49%)
+CRACKING HASH WITH BIG TRAWLING WORDLIST  (WITH SMALL RULE)
+Speed.#1.........:    33509 H/s (6.48ms) @ Accel:1024 Loops:1 Thr:64 Vec:1
+Progress.........: 51054159/51054159 (100.00%)
 
 
 
-Session..........: 53c4671f-0b19-4d16-ac01-e75b4232b854
-Status...........: Cracked
-Hash.Mode........: 13000 (RAR5)
-Hash.Target......: $rar5$16$c7a7b4bf25d7f9d99f5d6ac95df15f3b$15$0b5414...478cd8
-Time.Started.....: Fri Dec 13 14:47:50 2024 (14 mins, 24 secs)
-Time.Estimated...: Fri Dec 13 15:02:14 2024 (0 secs)
+Session..........: b0d54a1e-9f60-460c-ae23-b6bb969c98c5
+Status...........: Exhausted
+Hash.Mode........: 0 (MD5)
+Hash.Target......: C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\src\app\static\backend\remaining_hash\8cf1c67a-c3c3-48b6-9e91-9971a5f8c7a8.txt
+Time.Started.....: Thu Dec 19 17:26:45 2024 (25 mins, 24 secs)
+Time.Estimated...: Thu Dec 19 17:52:09 2024 (0 secs)
 Kernel.Feature...: Pure Kernel
 Guess.Base.......: File (C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\wordlist_samples\zing_tailieuvn_smallwordlist.txt)
 Guess.Queue......: 1/1 (100.00%)
-Speed.#1.........:    39275 H/s (10.63ms) @ Accel:64 Loops:64 Thr:128 Vec:1
-Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
-Progress.........: 33947648/51054159 (66.49%)
-Rejected.........: 0/33947648 (0.00%)
-Restore.Point....: 33718272/51054159 (66.04%)
-Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:32768-32799
+Speed.#1.........:    33509 H/s (6.48ms) @ Accel:1024 Loops:1 Thr:64 Vec:1
+Recovered........: 4944087/7134254 (69.30%) Digests (total), 4944087/7134254 (69.30%) Digests (new)
+Remaining........: 2190167 (30.70%) Digests
+Recovered/Time...: CUR:274417,N/A,N/A AVG:194654.86,N/A,N/A (Min,Hour,Day)
+Progress.........: 51054159/51054159 (100.00%)
+Rejected.........: 0/51054159 (0.00%)
+Restore.Point....: 51054159/51054159 (100.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
 Candidate.Engine.: Device Generator
-Candidates.#1....: SOLEIL76QWES -> anlgshensigt
-Hardware.Mon.#1..: Temp: 72c Fan: 64% Util: 98% Core:1905MHz Mem:7300MHz Bus:16
+Candidates.#1....: iikingsseventeen:THREETWO! -> 11111111111111111111111111111111111111111111111111111111111111111111111111111
+Hardware.Mon.#1..: Temp: 47c Fan:  0% Util: 13% Core: 840MHz Mem:5000MHz Bus:16

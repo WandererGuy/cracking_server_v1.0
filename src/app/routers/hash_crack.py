@@ -32,6 +32,8 @@ cracked_hash_result_folder = os.path.join(static_path, 'cracked_hash')
 potfile_folder = os.path.join(static_path, "potfiles")
 hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
+hashcat_terminate_file = os.path.join(static_path,'hashcat_terminate_file.txt')
+backend_temp_output = os.path.join(static_path,'backend_temp_output.txt')
 
 TEMP_LIMIT = 96
 ABORT_SIGNAL = False
@@ -101,7 +103,8 @@ async def hash_crack(
     status: str = Form(None),
     status_json: str = Form(None),
     status_timer: str = Form(None),
-    gpu_number: str = Form(None)
+    gpu_number: str = Form(None),
+    output_file_name: str = Form(...)
 ):
     global ABORT_SIGNAL
     hash_type = hashcat_hash_code
@@ -118,6 +121,8 @@ async def hash_crack(
 
     if status in ["True", "1", "true"]:
         status = "True"
+    with open(hashcat_terminate_file, 'w') as f:
+        f.write("")
 
 
     for item in [hash_file, mask_file, wordlist_file, rule_path]:
@@ -133,8 +138,17 @@ async def hash_crack(
         return reply_bad_request (message)
     potfile_name = generate_unique_filename(potfile_folder , extension="txt")
     potfile_path = os.path.join(potfile_folder, potfile_name)
-    output_file_name = generate_unique_filename(cracked_hash_result_folder , extension="txt")
     output_file = os.path.join(cracked_hash_result_folder, output_file_name)
+    if os.path.exists(output_file):
+        need_move_new_line = False
+        with open(output_file, 'r') as f:
+            content = f.read()
+            if content != "":
+                need_move_new_line = True
+        if need_move_new_line:
+            with open(output_file, 'a') as f:
+                f.write('\n')
+                
     """
     Hashcat crack given hash using wordlist/masklist. <br>
     Input:<br>
@@ -197,6 +211,10 @@ async def hash_crack(
         RESTORE = True
         first_flag = True
         exhausted_flag = False
+        crack_all_flag = False
+        terminate_intent = False
+        start = time.time()
+
         while RESTORE: # until no more restore due to heat 
                 if first_flag == False:
                         print (f'cooling gpu for {COOLDOWN_TIME_GPU} seconds')
@@ -221,10 +239,11 @@ async def hash_crack(
                     # in case it is still hot,  
                     # but hashcat done, no need to restore anymore 
                     if ": Exhausted" in line: 
-                        RESTORE = False # escape hashcat , no more reborn 
                         exhausted_flag = True
+                        RESTORE = False # escape hashcat , no more reborn 
                     elif ": Cracked" in line: 
                         RESTORE = False # escape hashcat , no more reborn
+                        crack_all_flag = True
                     elif ": Aborted" in line: 
                         print ('gpu self Aborted, maybe by temp')
                         print ('last temp recorded: ', last_temp)
@@ -256,6 +275,15 @@ async def hash_crack(
                         ABORT_SIGNAL = False
                         kill_process(process)     
                         break  # Exit the loop after terminating
+                    period = time.time() - start
+                    if period > 5: # check every 5 seconds if receive terminate signal
+                        start = time.time()
+                        with open (hashcat_terminate_file, 'r', encoding='utf-8') as f:
+                            if 'terminate' in f.read().lower():
+                                print('TERMINATE SIGNAL RECEIVED')
+                                kill_process(process)     
+                                terminate_intent = True
+                                RESTORE = False # escape hashcat , no more reborn 
 
         # terminate_hashcat(process)
         _, stderr = process.communicate()
@@ -270,12 +298,12 @@ async def hash_crack(
         kill_process(process)
         url_output = f"http://{host_ip}:{port_num}/static/cracked_hash/{output_file_name}"
         ### check for result 
-        output_file_path = os.path.join(cracked_hash_result_folder, output_file)
+        output_file_path = os.path.join(cracked_hash_result_folder, output_file_name)
         # if not os.path.exists(output_file_path):
-        if exhausted_flag:
-            message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
-            return reply_success(message = message,
-                                        result = None)
+        # if exhausted_flag:
+        #     message = "Wordlist Exhausted. Cannot crack ALL hash. Maybe have crack some hashes. Try find more wordlists to crack the rest hashes"
+        #     return reply_success(message = message,
+        #                                 result = None)
         if not os.path.exists(output_file_path):
             return reply_server_error('server suddenly cancel the cracking process')
         with open (output_file_path, 'r') as f: 
@@ -285,10 +313,28 @@ async def hash_crack(
                 for item in hf_data:
                     if item.strip().strip('\n').strip('\t') == "":
                         miss += 1 
-        message = "Sucessfully crack these hashes"
-        return reply_success(message = message,
-                            result = {"path": fix_path(os.path.join(cracked_hash_result_folder, output_file_name)),
-                                        "url": url_output})
+        path = fix_path(os.path.join(cracked_hash_result_folder, output_file_name))
+
+        if terminate_intent:
+            message = "TERMINATE SIGNAL RECEIVED. taking last checkpoint session. saving hash cracked so far"
+            with open (backend_temp_output, 'r', encoding='utf-8') as f:
+                data = f.readlines()
+                progress_phase = data[0]
+            return reply_success(message = message,
+                                        result = {'progress_phase':progress_phase, 
+                                                  'session_name':session_name,
+                                                  'path': path,
+                                                  'url': url_output})
+        if crack_all_flag:
+            message = "Sucessfully crack ALL hashes"
+            return reply_success(message = message,
+                                result = {"path": path,
+                                            "url": url_output})
+        if exhausted_flag:
+            message = "Wordlist Exhausted. Sucessfully crack these hashes"
+            return reply_success(message = message,
+                                result = {"path": path,
+                                            "url": url_output})
 
     except Exception as e:
         return reply_server_error(e)

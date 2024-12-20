@@ -363,7 +363,7 @@ async def prince_hashcat(
         ### check for result 
         output_file_path = os.path.join(cracked_hash_result_folder, output_file)
         if not os.path.exists(output_file_path):
-            message = "Wordlist Exhausted. Cannot crack hash. Maybe find more wordlists"
+            message = "Wordlist Exhausted. Cannot crack ANY hash. Maybe find more wordlists"
             return reply_success(message = message,
                                         result = None)
                 

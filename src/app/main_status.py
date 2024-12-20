@@ -5,10 +5,12 @@ import uvicorn
 import os 
 from routers.model import reply_bad_request, reply_success, reply_server_error
 from fastapi.staticfiles import StaticFiles
-from utils.common import empty_to_false
+from utils.common import empty_to_false, is_file_open
 from routers.model import MyHTTPException, my_exception_handler
 import requests 
 import asyncio
+from utils.session import session_save
+
 import uuid 
 from utils.common import fix_path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,33 +38,6 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 app.add_exception_handler(MyHTTPException, my_exception_handler)
 
-def session_save(session_folder_path, hash_file, res):
-    excel_path = os.path.join(session_folder_path, 'session.xlsx')
-    df = pd.read_excel(excel_path)
-    os.makedirs(session_folder_path, exist_ok=True)
-    for hash, hashcat_hash_code in res.items():
-        name_single_hash_file = str(uuid.uuid4()) + '.txt'
-        folder_1 = os.path.join(session_folder_path, hashcat_hash_code)
-        os.makedirs(folder_1, exist_ok=True)
-        print ('---------------')
-        print (folder_1)
-        file_1 = os.path.join(folder_1, name_single_hash_file)
-        all_same_hashcat_hash_code_file = os.path.join(folder_1, 'all.txt')
-        with open(file_1, 'w') as f:
-            f.write(hash)
-        with open(all_same_hashcat_hash_code_file, 'a') as f:
-            f.write(hash)
-            f.write('\n')
-        new_row = {
-                'hash value in file': file_1, 
-                'original extracted file path': "", 
-                'original hash file path': hash_file, 
-                'hashcat hash code': hashcat_hash_code, 
-                'hashes same hashcat hash code in file': all_same_hashcat_hash_code_file, 
-                'plaintext password': ""
-                }
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    df.to_excel(excel_path, index=False)
 
 @app.get("/get-hash-crack-status/")
 async def get_hash_crack_status():
@@ -81,12 +56,22 @@ async def find_code(
     hash_file: str = Form(...)
     
 ):
+    
     session_folder_path = os.path.join(static_path, 'session', session_name)
+    if os.path.exists(session_folder_path) == False:
+        message = f"no session name {session_name} does not exist"
+        return reply_bad_request(message = message)
+
+    
+    excel_path = os.path.join(session_folder_path, 'session.xlsx')
+    message = f'please close excel file {fix_path(excel_path)} so that system can write new data to it'
+    if is_file_open(excel_path): return reply_bad_request(message)
+
     if os.path.exists(hash_file) == False:
         message = f"file_path {fix_path(hash_file)} does not exist"
         return reply_bad_request(message = message)
     if os.path.exists(session_folder_path) == False:
-        message = f"session_folder_path {fix_path(session_folder_path)} does not exist"
+        message = f"no session name {session_name} does not exist"
         return reply_bad_request(message = message)
     fail_message = f'Cannot find hashcat hash_code. Maybe hash is wrong OR not supported by system'
     filename_0 = str(uuid.uuid4()) + '.txt'
@@ -114,9 +99,14 @@ async def find_code(
     #     for key, value in collect_res.items():
     #         f.write(f'Hash: {key}\n')
     #         f.write(f'Hashcat Hash Code: {value}\n\n\n')
-    session_save(session_folder_path, 
-                              hash_file, 
-                              collect_res)
+
+    session_save(excel_path = excel_path, 
+                    session_folder_path = session_folder_path, 
+                    hash_file = hash_file, 
+                    res = collect_res, 
+                    original_extracted_file_path = None)
+
+
     # result = {"path":path, "url":url}
     result = None
     return reply_success(message = "Success", result = result)
@@ -140,6 +130,15 @@ async def get_status_session(
     session_excel_path = fix_path(os.path.join(session_path, 'session.xlsx'))
     return reply_success(message = "Success", result = {"session_excel_path":session_excel_path})
 
+
+
+hashcat_terminate_file = os.path.join(static_path,'hashcat_terminate_file.txt')
+@app.get("/terminate-cracking/")
+async def terminate_cracking(
+):
+    with open(hashcat_terminate_file, 'w') as f:
+        f.write("terminate")
+    return reply_success(message = "Success terminate hashcat process", result = None)
 def main():
     print ('INITIALIZING FASTAPI SERVER')
     if empty_to_false(production) == False: 

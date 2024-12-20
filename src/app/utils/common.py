@@ -154,3 +154,16 @@ def check_temp(line, TEMP_LIMIT):
             return True
     else: 
         return False
+
+
+import psutil
+
+def is_file_open(file_path):
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            for item in proc.open_files():
+                if item.path == file_path:
+                    return True
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            pass
+    return False

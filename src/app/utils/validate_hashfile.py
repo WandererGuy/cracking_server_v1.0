@@ -33,7 +33,11 @@ def hash_validate(path_0, hashcat_hash_code):
     value, error = test_hashcat_hash_code(path_0, hashcat_hash_code)
     if  value != False: # success
         return True, None
-    else:
+    elif value == False and error == 'This hash-mode plugin cannot crack multiple hashes with the same salt, please select one of the hashes.':
+        message = f'error \'{error}\' Please input a hash file which contain 1 hash only, instead of multiple hashes like this '
+        return False, message
+
+    elif value == False:
         message = f'Invalid hash in hash file, shown in file\'{fix_path(path_0)}\' have error \'{error}\' for hashcat hash code \'{hashcat_hash_code}\'. \
                     step1: Please check for correct hashcat hash code for hash through other tools. If still fail, please fix the hash according to error OR remove the hash from file \
                     For fixing error, you can find example hash example for each hash type in pdf file: {document_path} to compare your hash \
@@ -48,32 +52,52 @@ def hashfile_validate(hash_file, hashcat_hash_code, hash_dump_folder):
     empty_file = True # make sure hash file not empty
     filename_0 = str(uuid.uuid4()) + '.txt'
     path_0 = os.path.join(hash_dump_folder, filename_0)
+    all_hash = []
+
+    # do for whole hash file
     with open(hash_file, 'r') as f:
         hashes = f.readlines()
         for index, hash in enumerate(hashes):
             hash = hash.strip('\n').strip()
             if hash == '':
                 continue
-            empty_file = False
-            with open(path_0, 'w') as f_0:
+            all_hash.append(hash)
+    with open(path_0, 'w') as f_0:
+        for hash in all_hash:
+            f_0.write(hash)
+            f_0.write('\n')
+    valid, message = hash_validate(path_0, hashcat_hash_code)
+    if valid == False:
+        # investigate each hash 
+        all_hash = []
+        with open(hash_file, 'r') as f:
+            hashes = f.readlines()
+            for index, hash in enumerate(hashes):
+                hash = hash.strip('\n').strip()
+                if hash == '':
+                    continue
+                empty_file = False
+                with open(path_0, 'w') as f_0:
+                    f_0.write(hash)
+                    all_hash.append(hash)
+                valid, message = hash_validate(path_0, hashcat_hash_code)
+                if valid == False:
+                    return False, message
+                
+        if empty_file == True:
+            return "empty", None
+        # final check whole file cause there is error about plugin same salt stuff
+        with open(path_0, 'w') as f_0:
+            for hash in all_hash:
                 f_0.write(hash)
-            valid, message = hash_validate(path_0, hashcat_hash_code)
-            if valid == False:
-                return False, message
-            # if index == 0:
-            #     fix_hashcat_hash_code = hashcat_hash_code
-            # else:
-            #     if hashcat_hash_code != fix_hashcat_hash_code:
-            #         raise MyHTTPException(status_code=400, message = 
-            #                                f'hash "{hash}" is different type from hash from start of the file. \
-            #                                Please fix or remove the hash. \
-            #                                file can only have 1 type of hash. \
-            #                                Please keep all hash the same type ')
-    if empty_file == True:
-        return "empty", None
-    else: 
+                f_0.write('\n')
+        valid, message = hash_validate(path_0, hashcat_hash_code)
+        if valid == False:
+            return False, message
         return True, None
-    
+    else:
+        return True, None
+
 
 
 def validate_hashfile_request(hash_file, 

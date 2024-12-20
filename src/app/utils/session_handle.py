@@ -12,12 +12,15 @@ def create_session():
     return session_path
 
 def create_empty_df():
-    columns = ['hash value in file', 
+    columns = ['time created',
+               'crack status',
+               'plaintext password', 
+               'hashcat hash code',
             'original extracted file path', 
             'original hash file path', 
-            'hashcat hash code', 
+            'hash value in file', 
             'hashes same hashcat hash code in file', 
-            'plaintext password']
+            'hash value']
     df = pd.DataFrame(columns=columns)
     return df
 
