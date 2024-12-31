@@ -1,9 +1,11 @@
 from fastapi import Form, APIRouter
 import os 
 from utils.common import handle_response
-from utils.frontend_validation import is_utf8, target_input_validation
+from utils.frontend_validation import is_utf8, target_input_validation, kw_ls_check
 from utils.common import empty_to_none
 from utils.backend.targuess import targuess_generate
+from routers.model import reply_bad_request, reply_success
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(os.path.dirname(script_dir))
@@ -39,8 +41,16 @@ async def only_generate_target_wordlist(
         "account_name": account_name,
         "id_num": id_num,
         "phone": phone,
-        "other": other_keywords
+        "other_keywords": other_keywords
     }
+    keyword_ls = other_keywords.split(',')
+    new_kw_ls = []
+    for kw in keyword_ls:
+        new_kw_ls.append(kw.replace(' ', ''))
+    res, false_kw = kw_ls_check(new_kw_ls)
+    if not res:
+        return reply_bad_request(f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
+
     # standardize input 
     for key, value in target_info.items():
         target_info[key] = empty_to_none(value)

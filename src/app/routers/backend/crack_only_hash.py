@@ -2,8 +2,8 @@ from fastapi import Form, APIRouter
 import os 
 import uuid
 from utils.common import fix_path, handle_response
-from routers.model import reply_bad_request, reply_success
-from utils.frontend_validation import is_utf8, target_input_validation
+from routers.model import reply_bad_request, reply_success, MyHTTPException
+from utils.frontend_validation import is_utf8, target_input_validation, kw_ls_check
 from utils.common import empty_to_none, is_file_open
 from utils.validate_hashfile import validate_hashfile_request, ls_support_hashcat_hash_code
 from utils.backend.targuess import targuess_generate
@@ -216,6 +216,15 @@ async def backend_crack_only_hash(
         "phone": phone,
         "other": other_keywords
     }
+
+    keyword_ls = other_keywords.split(',')
+    new_kw_ls = []
+    for kw in keyword_ls:
+        new_kw_ls.append(kw.replace(' ', ''))
+    res, false_kw = kw_ls_check(new_kw_ls)
+    if not res:
+        return reply_bad_request (f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
+
     # standardize input 
     for key, value in file_info.items():
         file_info[key] = empty_to_none(value)

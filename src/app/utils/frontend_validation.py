@@ -63,3 +63,22 @@ def target_input_validation(target_info: dict):
         id_num_validation(target_info['id_num'])
     if not target_info['phone'] == None:
         phone_validation(target_info['phone'])
+
+
+
+digit_lst = '0123456789'
+letter_lst = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+def check_class(char):
+    if char in digit_lst:
+        return 'D'
+    elif char in letter_lst:
+        return 'L'
+    else:
+        return 'S'
+def kw_ls_check(new_kw_ls):
+    for kw in new_kw_ls:
+        ref_class = check_class(kw[0])
+        for char in kw:
+            if check_class(char) != ref_class:
+                return False, kw 
+    return True, None   

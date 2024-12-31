@@ -23,7 +23,8 @@ def targuess_generate(targuess_train_result_refined_path,
     'id_num': target_info['id_num'],
     'phone': target_info['phone'],
     'max_mask_generate': max_mask_generate,
-    'train_result_refined_path': targuess_train_result_refined_path}
+    'train_result_refined_path': targuess_train_result_refined_path,
+    'other_keywords': target_info['other_keywords']}
     files=[
     ]
     headers = {}
