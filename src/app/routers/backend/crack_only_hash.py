@@ -29,7 +29,8 @@ HASH_CRACK_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/hash-crack/"
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
 TARGUESS_URL_MASKLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-mask-list/"
 VALIDATE_HASHFILE_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/validate-hashfile/"
-
+MAX_MASK_GENERATE_MASKLIST = int(config['DEFAULT']['MAX_MASK_GENERATE_MASKLIST'])
+MAX_MASK_GENERATE_WORDLIST = int(config['DEFAULT']['MAX_MASK_GENERATE_WORDLIST'])
 router = APIRouter()
 static_path = os.path.join(parent_dir,'static')
 hash_dump_folder = os.path.join(static_path,'backend','hash_dump')
@@ -146,8 +147,6 @@ async def backend_crack_only_hash(
     write_backend_step(content= 'VALIDATING USER INPUT')
     url_cracked_hash = f"http://{host_ip}:{PORT_BACKEND}/static/backend/cracked_hash/"
 
-    MAX_MASK_GENERATE_WORDLIST = 1000000000000 # max mask number to create wordlist
-    MAX_MASK_GENERATE_MASKLIST = 1000000000000 # same max mask number but to bruteforce, actually it get constrained by keyspace afterward so any value is ok 
     # can only achieve max mask if all information is provided 
     SMALL_RULE_PATH = os.path.join(os.getcwd(),'samples','rule_sample','clem9669_small.rule')
     BIG_RULE_PATH = os.path.join(os.getcwd(),'samples','rule_sample','OneRuleToRuleThemAll.rule')

@@ -16,6 +16,9 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 TARGUESS_PORT_NUM = config['DEFAULT']['TARGUESS_PORT_NUM'] 
+MAX_MASK_GENERATE_WORDLIST = int(config['DEFAULT']['MAX_MASK_GENERATE_WORDLIST'])  # max mask number to create wordlist
+# can only achieve max mask if all information is provided 
+
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
 
 router = APIRouter()
@@ -33,8 +36,6 @@ async def only_generate_target_wordlist(
     ):
     TARGUESS_TRAIN_RESULT_REFINED_PATH = targuess_train_result_refined_path
 
-    MAX_MASK_GENERATE_WORDLIST = 1000000000000 # max mask number to create wordlist
-    # can only achieve max mask if all information is provided 
 
     target_info = {
         "full_name": full_name,
