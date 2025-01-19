@@ -4,6 +4,7 @@ env
 samples/disk_E.image.001
 
 wordlist_samples
+wordlist_samples_full
 
 /*.rar
 src/app/static/backend/

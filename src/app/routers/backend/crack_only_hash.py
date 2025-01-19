@@ -24,7 +24,6 @@ config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 TARGUESS_PORT_NUM = config['DEFAULT']['TARGUESS_PORT_NUM'] 
 CRACKING_SERVER_PORT_NUM = config['DEFAULT']['CRACKING_SERVER_PORT_NUM'] 
-TARGUESS_TRAIN_RESULT_REFINED_PATH = config['DEFAULT']['TARGUESS_TRAIN_RESULT_REFINED_PATH'] 
 PORT_BACKEND = config['DEFAULT']['PORT_BACKEND']
 HASH_CRACK_URL = f"http://{host_ip}:{CRACKING_SERVER_PORT_NUM}/hash-crack/"
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
@@ -129,7 +128,9 @@ async def backend_crack_only_hash(
     id_num: str = Form(None),
     phone: str = Form(None),
     other_keywords: str = Form(None),
+    targuess_train_result_refined_path: str = Form(...),
     ):
+    TARGUESS_TRAIN_RESULT_REFINED_PATH = targuess_train_result_refined_path
     '''
     after each crack method , it takes remaining hash file to be hash file for next process
     '''
@@ -214,16 +215,16 @@ async def backend_crack_only_hash(
         "account_name": account_name,
         "id_num": id_num,
         "phone": phone,
-        "other": other_keywords
+        "other_keywords": other_keywords
     }
-
-    keyword_ls = other_keywords.split(',')
-    new_kw_ls = []
-    for kw in keyword_ls:
-        new_kw_ls.append(kw.replace(' ', ''))
-    res, false_kw = kw_ls_check(new_kw_ls)
-    if not res:
-        return reply_bad_request (f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
+    if other_keywords.strip() != '':
+        keyword_ls = other_keywords.split(',')
+        new_kw_ls = []
+        for kw in keyword_ls:
+            new_kw_ls.append(kw.replace(' ', ''))
+        res, false_kw = kw_ls_check(new_kw_ls)
+        if not res:
+            return reply_bad_request (f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
 
     # standardize input 
     for key, value in file_info.items():

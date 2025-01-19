@@ -16,7 +16,6 @@ config = configparser.ConfigParser()
 config.read(config_path)
 host_ip = config['DEFAULT']['host'] 
 TARGUESS_PORT_NUM = config['DEFAULT']['TARGUESS_PORT_NUM'] 
-TARGUESS_TRAIN_RESULT_REFINED_PATH = config['DEFAULT']['TARGUESS_TRAIN_RESULT_REFINED_PATH'] 
 TARGUESS_URL_WORDLIST = f"http://{host_ip}:{TARGUESS_PORT_NUM}/generate-target-wordlist/"
 
 router = APIRouter()
@@ -30,7 +29,10 @@ async def only_generate_target_wordlist(
     id_num: str = Form(None),
     phone: str = Form(None),
     other_keywords: str = Form(None),
+    targuess_train_result_refined_path: str = Form(...),
     ):
+    TARGUESS_TRAIN_RESULT_REFINED_PATH = targuess_train_result_refined_path
+
     MAX_MASK_GENERATE_WORDLIST = 1000000000000 # max mask number to create wordlist
     # can only achieve max mask if all information is provided 
 
@@ -43,13 +45,14 @@ async def only_generate_target_wordlist(
         "phone": phone,
         "other_keywords": other_keywords
     }
-    keyword_ls = other_keywords.split(',')
-    new_kw_ls = []
-    for kw in keyword_ls:
-        new_kw_ls.append(kw.replace(' ', ''))
-    res, false_kw = kw_ls_check(new_kw_ls)
-    if not res:
-        return reply_bad_request(f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
+    if other_keywords.strip() != '':
+        keyword_ls = other_keywords.split(',')
+        new_kw_ls = []
+        for kw in keyword_ls:
+            new_kw_ls.append(kw.replace(' ', ''))
+        res, false_kw = kw_ls_check(new_kw_ls)
+        if not res:
+            return reply_bad_request(f'keyword \'{false_kw}\' must be in same class: all letter, all digit or all special character')
 
     # standardize input 
     for key, value in target_info.items():

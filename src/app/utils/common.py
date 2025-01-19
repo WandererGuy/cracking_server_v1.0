@@ -142,9 +142,9 @@ def handle_response(response):
             json_data = response.json()  # Parse the JSON response
             return json_data  # Print the parsed JSON
         except ValueError:
-            raise MyHTTPException(status_code=500, message = "Backend progress have a Response is not valid JSON")
+            raise MyHTTPException(status_code=500, message = "send Request to another Backend, have a Response is not valid JSON")
     else:
-        raise MyHTTPException(status_code=500, message = f"Request failed with status code {response.status_code}")
+        raise MyHTTPException(status_code=500, message = f"send Request to another Backend, failed with status code {response.status_code}")
     # sys.exit()
 
 def check_temp(line, TEMP_LIMIT):
