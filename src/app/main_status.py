@@ -34,6 +34,8 @@ from contextlib import asynccontextmanager
 from routers.extract_hash import find_hashcat_hash_code
 import pandas as pd 
 from utils.session_handle import main as create_a_session
+
+script_name = 'main_status'
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 app.add_exception_handler(MyHTTPException, my_exception_handler)
@@ -142,8 +144,8 @@ async def terminate_cracking(
 def main():
     print ('INITIALIZING FASTAPI SERVER')
     if empty_to_false(production) == False: 
-        uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=True, workers = num_workers)
-    else: uvicorn.run("main_status:app", host=host_ip, port=int(port_num), reload=False, workers = num_workers)
+        uvicorn.run(f"{script_name}:app", host=host_ip, port=int(port_num), reload=True, workers = num_workers)
+    else: uvicorn.run(f"{script_name}:app", host=host_ip, port=int(port_num), reload=False, workers = num_workers)
 
 if __name__ == "__main__":
     main()

@@ -70,13 +70,15 @@ async def lifespan(app: FastAPI):
     print("Started periodic HTTP requests every 5 seconds.")
     yield
     pass # shutdown action 
+
+script_name = 'main_update'
 app = FastAPI(lifespan=lifespan)
 
 def main():
     print ('INITIALIZING FASTAPI SERVER')
     if empty_to_false(production) == False: 
-        uvicorn.run("main_update:app", host=host_ip, port=int(port_num), reload=True)
-    else: uvicorn.run(app, host=host_ip, port=int(port_num), reload=False)
+        uvicorn.run(f"{script_name}:app", host=host_ip, port=int(port_num), reload=True)
+    else: uvicorn.run(f"{script_name}:app", host=host_ip, port=int(port_num), reload=False)
 
 if __name__ == "__main__":
     main()
