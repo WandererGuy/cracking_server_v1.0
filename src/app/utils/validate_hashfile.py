@@ -1,18 +1,19 @@
 from routers.extract_hash import test_hashcat_hash_code
 from routers.model import MyHTTPException
+from routers.config import hash_type_to_hashcat_hash_code_dict
 import sys
 import requests
 import os 
 from utils.common import fix_path
 import uuid
 
-hash_type_to_hashcat_hash_code_dict = {
-    "BitLocker": ['22100'],
-    "7-Zip": ['11600'],
-    "WinZip": ['13600','17200', '17210', '17220', '17225', '17230'],
-    "RAR5": ['13000'],
-    "MD5": ['0']
-}
+# hash_type_to_hashcat_hash_code_dict = {
+#     "BitLocker": ['22100'],
+#     "7-Zip": ['11600'],
+#     "WinZip": ['13600','17200', '17210', '17220', '17225', '17230'],
+#     "RAR5": ['13000'],
+#     "MD5": ['0']
+# }
 ls_support_hashcat_hash_code = []
 for key, value in hash_type_to_hashcat_hash_code_dict.items():
     for item in value:

@@ -1,14 +1,15 @@
 import uuid
 import os
 from routers.model import MyHTTPException
+from routers.config import gen_extract_command, support_file_type, hash_type_dict
 # change this varibale require change gen_extract_command function too 
 
-support_file_type = ['BitLocker', '7-Zip', 'WinZip', 'RAR5']
+# support_file_type = ['BitLocker', '7-Zip', 'WinZip', 'RAR5']
 
-ls = [0, 22100, 11600, 13600, 13000, 17200, 17210, 17220, 17225, 17230]
-hash_type_dict = {}
-for item in ls:
-    hash_type_dict[str(item)] = item
+# ls = [0, 22100, 11600, 13600, 13000, 17200, 17210, 17220, 17225, 17230]
+# hash_type_dict = {}
+# for item in ls:
+#     hash_type_dict[str(item)] = item
    
 
 attack_mode_dict = {
@@ -19,33 +20,6 @@ attack_mode_dict = {
     "Hybrid Mask + Wordlist": 7,
     "Association": 9
 }
-def gen_extract_command(hash_type, file_path):
-    match hash_type:
-        case "BitLocker":
-            command = [
-                'bitlocker2john',
-                '-i',
-                file_path
-            ]
-            
-        case "7-Zip":
-            command = [
-                '7z2john',
-                file_path
-            ]        
-        case "WinZip":
-            command = [
-                'zip2john',
-                file_path
-            ]
-        case "RAR5":
-            command = [
-                'rar2john',
-                file_path
-            ]
-        case _:
-            return "Default case"
-    return command
 
 
 def empty_to_none(value):

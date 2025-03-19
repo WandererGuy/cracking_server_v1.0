@@ -34,7 +34,7 @@ hashcat_temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 hashcat_path = os.path.join(os.getcwd(), "hashcat","hashcat.exe")
 hashcat_terminate_file = os.path.join(static_path,'hashcat_terminate_file.txt')
 backend_temp_output = os.path.join(static_path,'backend_temp_output.txt')
-
+current_dir = os.path.dirname(os.path.abspath(__file__))
 TEMP_LIMIT = 96
 ABORT_SIGNAL = False
 COOLDOWN_TIME_GPU = 30
@@ -207,7 +207,9 @@ async def hash_crack(
         print (command)
         print('')
         print (cm)           
-
+        with open(os.path.join(current_dir,'command.txt'), 'a') as f:
+            f.write('\n\n\n')
+            f.write(cm)
         RESTORE = True
         first_flag = True
         exhausted_flag = False

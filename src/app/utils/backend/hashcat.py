@@ -2,6 +2,9 @@ import requests
 from utils.common import fix_path, handle_response
 from routers.model import MyHTTPException
 from tqdm import tqdm
+import os 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(os.path.dirname(current_dir))
 def send_hash_crack(url = '', 
                     hash_file = '',
                     wordlist_file = '', 

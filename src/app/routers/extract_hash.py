@@ -8,7 +8,7 @@ from utils.common import fix_path, generate_unique_filename, \
     is_file_open, check_value_in_list, gen_extract_command, support_file_type
 from routers.model import reply_bad_request, reply_success, reply_server_error
 from utils.session import session_save
-
+from routers.config import hashcat_hash_code_dict, find_hash
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='fastapi.log', filemode='w')
 # logger = logging.getLogger(__name__)
 
@@ -35,14 +35,16 @@ fake_wordlist_path = os.path.join(running_dir, 'samples','wordlist','fake_test_h
 fake_potfile_path = os.path.join(running_dir, 'samples','wordlist','fake_test_potfile.pot')
 temp_output = os.path.join(static_path,'hashcat_temp_output.txt')
 
-hashcat_hash_code_dict = {
-    "": ["0"],  
-    "$zip2$": ['13600'],
-    "$pkzip2$": ['17200', '17210', '17220', '17225', '17230'],
-    "$rar5$": ['13000'],
-    "$bitlocker$": ['22100'],
-    "$7z$": ['11600']
-}
+# hashcat_hash_code_dict = {
+#     "": ["0"],  
+#     "$zip2$": ['13600'],
+#     "$pkzip2$": ['17200', '17210', '17220', '17225', '17230'],
+#     "$rar5$": ['13000'],
+#     "$bitlocker$": ['22100'],
+#     "$7z$": ['11600']
+# }
+# Open the YAML file and load its contents
+
 def kill_process(process):
     process.terminate()
     try:
@@ -113,44 +115,6 @@ def find_hashcat_hash_code(extract_hash_result_file, real_hash):
                 else: return hashcat_hash_code
             # break # since unique type only found once 
     return None
-
-def find_hash(file_type, stdout):
-    # real_hash = None
-    print ('------------------ file_type ------------------')
-    print (file_type)
-    if file_type == "RAR5":
-        border = ':'
-        real_hash = stdout.split(border)[1]
-        return real_hash
-    elif file_type == "WinZip":
-        check = "$zip2$"
-        if check in stdout:
-            real_hash = stdout.split(check, 1)[1]
-            check_2 = "zip2$"
-            real_hash = check + real_hash.split(check_2, 1)[0] + check_2
-            return real_hash
-
-        check = "$pkzip2$"
-        if check in stdout:
-            real_hash = stdout.split(check, 1)[1]
-            check_2 = "pkzip2$"
-            real_hash = check + real_hash.split(check_2, 1)[0] + check_2
-            return real_hash
-    elif file_type == "BitLocker":
-        check = "User Password hash:"
-        if check in stdout:
-            real_hash = stdout.split(check, 1)[1]
-            check_2 = "$bitlocker$"
-            real_hash = stdout.split(check_2, 1)[1]
-            check_3 = "Hash type: User Password with MAC verification"
-            real_hash = check_2 + real_hash.split(check_3, 1)[0]
-            real_hash = real_hash.strip('\n')
-            return real_hash
-    elif file_type == "7-Zip":
-        border = ':'
-        real_hash = stdout.split(border)[1]
-        return real_hash
-    else: return None
 
 
 import pandas as pd

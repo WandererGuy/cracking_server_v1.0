@@ -3,6 +3,7 @@ import os
 import uuid
 from utils.common import fix_path, handle_response
 from routers.model import reply_bad_request, reply_success, MyHTTPException
+from routers.config import flow_component
 from utils.frontend_validation import is_utf8, target_input_validation, kw_ls_check
 from utils.common import empty_to_none, is_file_open
 from utils.validate_hashfile import validate_hashfile_request, ls_support_hashcat_hash_code
@@ -64,6 +65,7 @@ def template_output(hashcat_material: dict,
                     cracked_hash_file, 
                     url_cracked_hash, 
                     remaining_hash_file):
+
     # continously update cracked and uncracked hashes, cracked hash file is final display output 
     res = use_hashcat(hashcat_material, HASH_CRACK_URL)  
     hash_dict, terminate_flag, terminate_save = handle_hashcat_response(res)
@@ -99,9 +101,14 @@ def template_output(hashcat_material: dict,
     write_to_remaining_hashfile(remaining_hash_file, uncracked_hashes)
     
     time.sleep(1)
+    with open(remaining_hash_file, 'r') as f:
+        if f.read() == "" or f.read() == "\n":
+            res = end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
+            return res , uncracked_hashes , cracked_hashes
+
     if uncracked_hashes == []:
-        return end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
-            
+        res = end_cracking(cracked_hashes, cracked_hash_file, url_cracked_hash)
+        return res , uncracked_hashes , cracked_hashes
     if terminate_flag and terminate_save != None: 
         terminate_progress_phase = terminate_save["terminate_progress_phase"]
         terminate_session_name = terminate_save["terminate_session_name"]
@@ -151,7 +158,7 @@ async def backend_crack_only_hash(
     SMALL_RULE_PATH = os.path.join(os.getcwd(),'samples','rule_sample','clem9669_small.rule')
     BIG_RULE_PATH = os.path.join(os.getcwd(),'samples','rule_sample','OneRuleToRuleThemAll.rule')
     
-    SMALL_TRAWLING_WORDLIST = os.path.join(os.getcwd(),'samples','wordlist','fake.txt')
+    SMALL_TRAWLING_WORDLIST = os.path.join(os.getcwd(),'wordlist_samples','ALL_PASSWORD_V2_vn.txt')
     BIG_TRAWLING_WORDLIST = os.path.join(os.getcwd(),'wordlist_samples','zing_tailieuvn_smallwordlist.txt')
     
     LIMIT_SMALL_TARGET_MASK_KEYSPACE = 10**7 # FOR MASK , ABOUT 100 MILLION WORD WORDLIST 
@@ -177,26 +184,7 @@ async def backend_crack_only_hash(
     print ('choose remaining hash file: ', remaining_hash_file)
     print ('choose cracked hash file: ', cracked_hash_file)
 
-    flow_component = {
-        'target_wl': 1,
-        'target_wl_small_rule': 1,
-        'small_trawling_wl': 1,
-        'small_trawling_wl_small_rule': 1,
-        'big_trawling_wl': 1,
-        'big_trawling_wl_small_rule': 1,
-        'small_target_ml': 1,
-        'small_target_ml_small_rule': 1,
-        'big_target_ml': 1,
-        'big_target_ml_small_rule': 1,
-        'small_trawling_ml': 1,
-        'small_trawling_ml_small_rule': 1,
-        'big_trawling_ml': 1,
-        'big_trawling_ml_small_rule':   1,
-        'first_desperate_ml': 1,
 
-        'big_trawling_wl_big_rule': 1
-
-    }
 
 
     if hashcat_hash_code not in ls_support_hashcat_hash_code: 
