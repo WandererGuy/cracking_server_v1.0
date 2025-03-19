@@ -1,5 +1,5 @@
 import requests
-
+targuess_train_result_refined_path = 'default'
 host = "192.168.1.5"
 def stage_1():
     url = f"http://{host}:8011/create-session"
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     'id_num': '',
     'phone': '',
     'other_keywords': '',
-    'targuess_train_result_refined_path': '2911da79-f63c-4b1c-874a-839c37da85c8'}
+    'targuess_train_result_refined_path': targuess_train_result_refined_path}
     files=[
 
     ]
