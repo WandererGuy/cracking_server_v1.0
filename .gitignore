@@ -1,5 +1,5 @@
 **/__pycache__/
-
+!hashcat
 env
 samples/disk_E.image.001
 
