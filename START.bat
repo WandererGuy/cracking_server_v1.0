@@ -13,6 +13,7 @@ set SCRIPT_PATH_1=src\app\main.py
 set SCRIPT_PATH_2=src\app\main_backend.py
 set SCRIPT_PATH_3=src\app\main_update.py
 set SCRIPT_PATH_4=src\app\main_status.py
+set SCRIPT_PATH_5=src\app\main_all.py
 
 REM Open first terminal
 start "Change ip" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_0%""
@@ -28,3 +29,6 @@ start "main_update.py" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python 
 
 REM Open fourth terminal
 start "main_status" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_4%""
+
+REM Open fifth terminal
+start "main_all" cmd /k "call conda activate "%CONDA_ENV_PATH%" && python "%SCRIPT_PATH_5%""

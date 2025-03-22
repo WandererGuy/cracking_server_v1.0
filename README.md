@@ -2,6 +2,14 @@
 change to ip of the host in src/app/config.ini
 
 
+# to setup (for me)
+```
+git clone https://github.com/WandererGuy/cracking_server_v1.0.git
+pip install fastapi uvicorn pydantic python-multipart tqdm openpyxl pandas psutil requests unidecode
+
+copy hashcat folder 
+copy wordlist_samples folder 
+```
 ## 2 WAYS:
 use START.bat
 

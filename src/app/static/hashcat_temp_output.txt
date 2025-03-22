@@ -1,18 +1,19 @@
-Session..........: d3a8288f-0d7f-4784-9da0-2a6cdef31af3
-Status...........: Running
+Session..........: e4ff2965-c232-4a14-9acf-6c5b531e3ae9
+Status...........: Cracked
 Hash.Mode........: 13000 (RAR5)
 Hash.Target......: $rar5$16$3d72442f611a0034e658ecbb6f61e5ca$15$3281b4...ed8bc2
-Time.Started.....: Wed Mar 19 11:56:18 2025 (1 min, 0 secs)
-Time.Estimated...: Wed Mar 19 11:59:05 2025 (1 min, 47 secs)
+Time.Started.....: Wed Mar 19 12:37:35 2025 (13 mins, 53 secs)
+Time.Estimated...: Wed Mar 19 12:51:28 2025 (0 secs)
 Kernel.Feature...: Pure Kernel
-Guess.Base.......: File (C:/Users/Admin/CODE/work/PASSWORD_CRACK/TarGuess-I-main/static/generated_target_wordlist/51b213be-3d26-4102-a7e8-6094c029538c.txt)
+Guess.Base.......: File (C:/Users/Admin/CODE/work/PASSWORD_CRACK/TarGuess-I-main/static/generated_target_wordlist/4b2862f8-6e14-4bf6-855b-3345bbb40dbb.txt)
+Guess.Mod........: Rules (C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\rule_sample\clem9669_small.rule)
 Guess.Queue......: 1/1 (100.00%)
-Speed.#1.........:    39646 H/s (10.82ms) @ Accel:16 Loops:64 Thr:512 Vec:1
-Recovered........: 0/1 (0.00%) Digests (total), 0/1 (0.00%) Digests (new)
-Progress.........: 2293760/6561711 (34.96%)
-Rejected.........: 0/2293760 (0.00%)
-Restore.Point....: 2293760/6561711 (34.96%)
-Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:12352-12416
+Speed.#1.........:    39673 H/s (10.96ms) @ Accel:8 Loops:64 Thr:1024 Vec:1
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 33030144/2526258735 (1.31%)
+Rejected.........: 0/33030144 (0.00%)
+Restore.Point....: 0/6561711 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:143-144 Iteration:32768-32799
 Candidate.Engine.: Device Generator
-Candidates.#1....: Vtiend -> 19Q00O89
-Hardware.Mon.#1..: Temp: 73c Fan: 60% Util: 99% Core:1905MHz Mem:7300MHz Bus:16
+Candidates.#1....: FFFF -> qwe
+Hardware.Mon.#1..: Temp: 76c Fan: 77% Util: 98% Core:1897MHz Mem:7300MHz Bus:16
