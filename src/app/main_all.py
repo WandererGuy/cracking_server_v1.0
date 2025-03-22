@@ -25,7 +25,6 @@ production = config['DEFAULT']['production']
 num_workers = int(config['DEFAULT']['num_workers'])
 
 
-targuess_train_result_refined_path = 'default'
 
 
 port_status_hash_crack = config['DEFAULT']['port_status_hash_crack']
@@ -98,7 +97,7 @@ def stage_3(session_name, hash_value_file, session_excel_path):
     return hashcat_hash_code
 
 
-def stage_4(file_path, file_type):
+def stage_4(file_path, file_type, targuess_train_result_refined_path):
     # file_path =  r'C:\Users\Admin\CODE\work\PASSWORD_CRACK\cracking_server_v1.0\samples\extract_hash_files\123456789.rar'
     # file_type =  "RAR5"
     session_name = stage_1()
@@ -138,8 +137,12 @@ def stage_4(file_path, file_type):
 @app.post("/unlock-archive")
 async def unlock_archive(    
     file_path: str = Form(...),
-    file_type: str = Form(...)):
-    return stage_4(file_path=file_path, file_type=file_type)
+    file_type: str = Form(...),
+    targuess_train_result_refined_path : str = Form(...),
+):
+    return stage_4(file_path=file_path, 
+                   file_type=file_type, 
+                   targuess_train_result_refined_path = targuess_train_result_refined_path)
     
 
 
